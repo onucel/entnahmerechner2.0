@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wealth Pilot - Der Entnahmerechner 2.0</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Custom animations and styles */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .card-selected {
+            ring: 2px;
+            ring-color: #2563EB;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Custom slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            background: linear-gradient(to right, #059669 0%, #D97706 50%, #E11D48 100%);
+            height: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        input[type="range"]::-moz-range-track {
+            background: linear-gradient(to right, #059669 0%, #D97706 50%, #E11D48 100%);
+            height: 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 1.5rem;
+            width: 1.5rem;
+            background-color: #2563EB;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            height: 1.5rem;
+            width: 1.5rem;
+            background-color: #2563EB;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-blue-600">Wealth Pilot</h1>
+                    <p class="text-sm text-slate-600 mt-1">Privacy-First Ruhestandsplanung für Deutschland</p>
+                </div>
+                <button id="exportPDF" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    PDF Export
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Section A: Hero - Ansparphase -->
+        <section id="sectionA" class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">Ansparphase: Ihr Weg zur finanziellen Freiheit</h2>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                    Live-Berechnung
+                </span>
+            </div>
+
+            <!-- Input Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Current Age -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Aktuelles Alter (Jahre)</label>
+                    <input type="number" id="currentAge" value="30" min="18" max="100"
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Retirement Age -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Rentenalter (Jahre)</label>
+                    <input type="number" id="retirementAge" value="65" min="50" max="100"
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Current Wealth -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Aktuelles Vermögen (€)</label>
+                    <input type="number" id="currentWealth" value="50000" min="0" step="1000"
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Monthly Savings -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Monatliche Sparrate (€)</label>
+                    <input type="number" id="monthlySavings" value="1000" min="0" step="50"
+                           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+
+            <!-- Market Settings -->
+            <div class="bg-slate-50 rounded-lg p-6 mb-8 border-2 border-blue-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">Markt-Annahmen</h3>
+                    <span class="text-xs text-blue-600 font-medium">Gilt für Anspar- und Entnahmephase</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Asset Allocation Slider -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Asset Allocation: <span id="assetAllocationLabel" class="text-blue-600 font-bold">70% Aktien / 30% Sicher</span>
+                        </label>
+                        <input type="range" id="assetAllocation" value="70" min="0" max="100" step="5"
+                               class="w-full mt-4">
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>Sicher (Anleihen)</span>
+                            <span>Chancen (Aktien)</span>
+                        </div>
+                        <div class="mt-3 grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-slate-600">Erwartete Rendite:</span>
+                                <span id="expectedReturnLabel" class="font-semibold text-blue-600 ml-1">6.0%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-600">Volatilität:</span>
+                                <span id="volatilityLabel" class="font-semibold text-amber-600 ml-1">13.2%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inflation Settings -->
+                    <div>
+                        <label class="flex items-center cursor-pointer mb-4">
+                            <div class="relative">
+                                <input type="checkbox" id="inflationToggle" class="sr-only" checked>
+                                <div class="block bg-slate-300 w-14 h-8 rounded-full"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                            </div>
+                            <div class="ml-3 text-sm font-medium text-slate-700">
+                                Inflation berücksichtigen
+                                <span class="block text-xs text-slate-500">(zeigt Kaufkraft heute)</span>
+                            </div>
+                        </label>
+
+                        <div id="inflationRateContainer">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Inflationsrate (% p.a.)</label>
+                            <input type="number" id="inflationRate" value="2.0" min="0" max="10" step="0.1"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Metrics Display -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <div class="text-sm text-slate-600 mb-1">Vermögen bei Rentenbeginn</div>
+                    <div id="retirementWealth" class="text-2xl font-bold text-blue-600">-</div>
+                </div>
+                <div class="bg-emerald-50 rounded-lg p-4">
+                    <div class="text-sm text-slate-600 mb-1">Gesamte Einzahlungen</div>
+                    <div id="totalContributions" class="text-2xl font-bold text-emerald-600">-</div>
+                </div>
+                <div class="bg-amber-50 rounded-lg p-4">
+                    <div class="text-sm text-slate-600 mb-1">Erzielte Gewinne</div>
+                    <div id="totalGains" class="text-2xl font-bold text-amber-600">-</div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-slate-50 rounded-lg p-4">
+                <canvas id="accumulationChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Section B: Strategy Deck - Entnahmephase -->
+        <section id="sectionB" class="mb-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6">Entnahmestrategie: Wählen Sie Ihren Weg</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Card 1: Eternal Annuity -->
+                <div id="card1" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-slate-900">Ewige Rente</h3>
+                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                            Kapitalerhalt
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-slate-600 mb-6">
+                        Nur Gewinne entnehmen. Ihr Kapital bleibt erhalten und kann vererbt werden.
+                    </p>
+
+                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme</div>
+                        <div id="card1Amount" class="text-3xl font-bold text-emerald-600">-</div>
+                    </div>
+
+                    <div class="flex items-center text-sm text-slate-600">
+                        <svg class="w-5 h-5 mr-2 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="card1Success">Sicherheit: 100%</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: 4% Rule -->
+                <div id="card2" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-slate-900">Die 4%-Regel</h3>
+                        <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+                            Standard
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-slate-600 mb-6">
+                        Feste 4% Entnahme vom Startwert, inflationsangepasst. Wissenschaftlich erprobt.
+                    </p>
+
+                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme</div>
+                        <div id="card2Amount" class="text-3xl font-bold text-amber-600">-</div>
+                    </div>
+
+                    <div class="flex items-center text-sm text-slate-600">
+                        <svg class="w-5 h-5 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="card2Success">Sicherheit: -</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Capital Depletion -->
+                <div id="card3" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-slate-900">Kapitalverzehr</h3>
+                        <span class="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-semibold rounded-full">
+                            Dynamisch
+                        </span>
+                    </div>
+
+                    <p class="text-sm text-slate-600 mb-6">
+                        Maximales Einkommen durch gezielten Kapitalabbau bis zum gewünschten Erbe.
+                    </p>
+
+                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme (Ø)</div>
+                        <div id="card3Amount" class="text-3xl font-bold text-rose-600">-</div>
+                        <div id="card3Range" class="text-xs text-slate-500 mt-1">-</div>
+                    </div>
+
+                    <div class="flex items-center text-sm text-slate-600">
+                        <svg class="w-5 h-5 mr-2 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="card3Success">Sicherheit: -</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdrawal Chart -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Vermögensverlauf in der Entnahmephase</h3>
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <canvas id="withdrawalChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section C: Detail Settings -->
+        <section id="sectionC" class="bg-white rounded-xl shadow-lg p-6 fade-in">
+            <button id="cockpitToggle" class="w-full flex items-center justify-between text-left">
+                <h2 class="text-2xl font-bold text-slate-900">Weitere Details: Steuern, Erbe & Sozialabgaben</h2>
+                <svg id="cockpitIcon" class="w-6 h-6 text-slate-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+
+            <div id="cockpitContent" class="mt-6 space-y-8 hidden">
+
+                <!-- Legacy & Security -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Nachlass & Sicherheit</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Desired Inheritance -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Gewünschtes Erbe (€)</label>
+                            <input type="number" id="desiredInheritance" value="0" min="0" step="10000"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1">Betrag, der am Lebensende (95 Jahre) mindestens übrig bleiben soll</p>
+                        </div>
+
+                        <!-- Life Expectancy -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Lebenserwartung (Jahre)</label>
+                            <input type="number" id="lifeExpectancy" value="95" min="65" max="120"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Taxes & Social Contributions -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Steuern & Sozialabgaben</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Capital Gains Tax -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Abgeltungssteuer (inkl. Soli)</label>
+                            <div class="flex items-center">
+                                <input type="number" id="capitalGainsTax" value="26.375" min="0" max="50" step="0.001"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <span class="ml-2 text-slate-600">%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Standard: 25% + 5,5% Soli = 26,375%</p>
+                        </div>
+
+                        <!-- Health Insurance Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Krankenversicherungsstatus</label>
+                            <select id="healthInsurance" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="kvdr">Pflichtversichert (KVdR)</option>
+                                <option value="gkv">Freiwillig GKV</option>
+                                <option value="pkv">Privat (PKV)</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-1" id="healthInsuranceInfo">Keine zusätzlichen Abzüge auf Kapitalerträge</p>
+                        </div>
+
+                        <!-- Annual Tax-Free Amount -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Sparerpauschbetrag (€/Jahr)</label>
+                            <input type="number" id="taxFreeAmount" value="1000" min="0" step="100"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1">Ab 2024: 1.000 € (Einzelperson) / 2.000 € (Ehepaar)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monte Carlo Settings -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Monte Carlo Simulation</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Number of Simulations -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Anzahl Simulationen</label>
+                            <input type="number" id="monteCarloRuns" value="500" min="100" max="10000" step="100"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1">Mehr Läufe = genauere Ergebnisse, aber langsamer</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center text-sm text-slate-600">
+                <p>Wealth Pilot - Privacy-First Ruhestandsplanung</p>
+                <p class="mt-1">Alle Berechnungen erfolgen lokal in Ihrem Browser. Keine Daten werden übertragen.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+
+        let state = {
+            // Section A: Accumulation
+            currentAge: 30,
+            retirementAge: 65,
+            currentWealth: 50000,
+            monthlySavings: 1000,
+            inflationToggle: true,
+
+            // Section C: Expert Settings
+            inflationRate: 2.0,
+            assetAllocation: 70, // % stocks
+            desiredInheritance: 0,
+            lifeExpectancy: 95,
+            capitalGainsTax: 26.375,
+            healthInsurance: 'kvdr',
+            taxFreeAmount: 1000,
+            monteCarloRuns: 500,
+
+            // Computed values
+            retirementWealth: 0,
+            totalContributions: 0,
+            totalGains: 0,
+
+            // Selected strategy
+            selectedStrategy: null
+        };
+
+        // Chart instances
+        let accumulationChart = null;
+        let withdrawalChart = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStateFromLocalStorage();
+            initializeEventListeners();
+            initializeCharts();
+            updateInflationToggleUI();
+            updateHealthInsuranceInfo();
+            updateAssetAllocationLabel(); // Initialize asset allocation display
+            calculate();
+        });
+
+        // ============================================
+        // LOCAL STORAGE
+        // ============================================
+
+        function loadStateFromLocalStorage() {
+            const saved = localStorage.getItem('wealthPilotState');
+            if (saved) {
+                try {
+                    const savedState = JSON.parse(saved);
+                    state = { ...state, ...savedState };
+
+                    // Update all input fields
+                    document.getElementById('currentAge').value = state.currentAge;
+                    document.getElementById('retirementAge').value = state.retirementAge;
+                    document.getElementById('currentWealth').value = state.currentWealth;
+                    document.getElementById('monthlySavings').value = state.monthlySavings;
+                    document.getElementById('inflationToggle').checked = state.inflationToggle;
+
+                    document.getElementById('inflationRate').value = state.inflationRate;
+                    document.getElementById('assetAllocation').value = state.assetAllocation;
+                    document.getElementById('desiredInheritance').value = state.desiredInheritance;
+                    document.getElementById('lifeExpectancy').value = state.lifeExpectancy;
+                    document.getElementById('capitalGainsTax').value = state.capitalGainsTax;
+                    document.getElementById('healthInsurance').value = state.healthInsurance;
+                    document.getElementById('taxFreeAmount').value = state.taxFreeAmount;
+                    document.getElementById('monteCarloRuns').value = state.monteCarloRuns;
+
+                    updateAssetAllocationLabel();
+                } catch (e) {
+                    console.error('Failed to load state:', e);
+                }
+            }
+        }
+
+        function saveStateToLocalStorage() {
+            try {
+                localStorage.setItem('wealthPilotState', JSON.stringify(state));
+            } catch (e) {
+                console.error('Failed to save state:', e);
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        function initializeEventListeners() {
+            // Section A inputs
+            document.getElementById('currentAge').addEventListener('input', (e) => {
+                state.currentAge = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('retirementAge').addEventListener('input', (e) => {
+                state.retirementAge = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('currentWealth').addEventListener('input', (e) => {
+                state.currentWealth = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('monthlySavings').addEventListener('input', (e) => {
+                state.monthlySavings = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('inflationToggle').addEventListener('change', (e) => {
+                state.inflationToggle = e.target.checked;
+                updateInflationToggleUI();
+                calculate();
+            });
+
+            // Section C inputs
+            document.getElementById('inflationRate').addEventListener('input', (e) => {
+                state.inflationRate = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('assetAllocation').addEventListener('input', (e) => {
+                state.assetAllocation = parseFloat(e.target.value);
+                updateAssetAllocationLabel();
+                calculate();
+            });
+
+            document.getElementById('desiredInheritance').addEventListener('input', (e) => {
+                state.desiredInheritance = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('lifeExpectancy').addEventListener('input', (e) => {
+                state.lifeExpectancy = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('capitalGainsTax').addEventListener('input', (e) => {
+                state.capitalGainsTax = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('healthInsurance').addEventListener('change', (e) => {
+                state.healthInsurance = e.target.value;
+                updateHealthInsuranceInfo();
+                calculate();
+            });
+
+            document.getElementById('taxFreeAmount').addEventListener('input', (e) => {
+                state.taxFreeAmount = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('monteCarloRuns').addEventListener('input', (e) => {
+                state.monteCarloRuns = parseInt(e.target.value);
+                calculate();
+            });
+
+            // Cockpit toggle
+            document.getElementById('cockpitToggle').addEventListener('click', () => {
+                const content = document.getElementById('cockpitContent');
+                const icon = document.getElementById('cockpitIcon');
+
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    content.classList.add('hidden');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+
+            // Strategy cards
+            document.getElementById('card1').addEventListener('click', () => selectStrategy(1));
+            document.getElementById('card2').addEventListener('click', () => selectStrategy(2));
+            document.getElementById('card3').addEventListener('click', () => selectStrategy(3));
+
+            // PDF Export
+            document.getElementById('exportPDF').addEventListener('click', exportToPDF);
+        }
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
+
+        function updateInflationToggleUI() {
+            const toggle = document.getElementById('inflationToggle');
+            const dot = toggle.nextElementSibling.querySelector('.dot');
+
+            if (toggle.checked) {
+                toggle.nextElementSibling.classList.remove('bg-slate-300');
+                toggle.nextElementSibling.classList.add('bg-blue-600');
+                dot.style.transform = 'translateX(1.5rem)';
+            } else {
+                toggle.nextElementSibling.classList.remove('bg-blue-600');
+                toggle.nextElementSibling.classList.add('bg-slate-300');
+                dot.style.transform = 'translateX(0)';
+            }
+        }
+
+        function updateAssetAllocationLabel() {
+            const allocation = state.assetAllocation;
+            const stocks = allocation;
+            const safe = 100 - allocation;
+
+            document.getElementById('assetAllocationLabel').textContent =
+                `${stocks}% Aktien / ${safe}% Sicher`;
+
+            const expectedReturn = getExpectedReturn();
+            document.getElementById('expectedReturnLabel').textContent =
+                `${expectedReturn.toFixed(1)}%`;
+
+            const volatility = calculateVolatility(allocation);
+            document.getElementById('volatilityLabel').textContent =
+                `${(volatility * 100).toFixed(1)}%`;
+        }
+
+        function updateHealthInsuranceInfo() {
+            const info = document.getElementById('healthInsuranceInfo');
+            const status = state.healthInsurance;
+
+            if (status === 'kvdr') {
+                info.textContent = 'Keine zusätzlichen Abzüge auf Kapitalerträge';
+            } else if (status === 'gkv') {
+                info.textContent = '~19% Abzug auf den Gewinnanteil (KV + PV)';
+            } else {
+                info.textContent = 'Keine variablen Abzüge (Pauschalbeitrag)';
+            }
+        }
+
+        function selectStrategy(strategyNumber) {
+            state.selectedStrategy = strategyNumber;
+
+            // Update card styling
+            const cards = document.querySelectorAll('.strategy-card');
+            cards.forEach((card, index) => {
+                if (index + 1 === strategyNumber) {
+                    card.classList.add('card-selected', 'border-blue-600');
+                } else {
+                    card.classList.remove('card-selected', 'border-blue-600');
+                }
+            });
+
+            // Update withdrawal chart
+            updateWithdrawalChart();
+        }
+
+        // ============================================
+        // CHART INITIALIZATION
+        // ============================================
+
+        function initializeCharts() {
+            // Accumulation Chart
+            const accCtx = document.getElementById('accumulationChart').getContext('2d');
+            accumulationChart = new Chart(accCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Vermögensentwicklung',
+                        data: [],
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Vermögen: ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Withdrawal Chart
+            const withCtx = document.getElementById('withdrawalChart').getContext('2d');
+            withdrawalChart = new Chart(withCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Set canvas height
+            document.getElementById('accumulationChart').parentElement.style.height = '300px';
+            document.getElementById('withdrawalChart').parentElement.style.height = '400px';
+        }
+
+        // ============================================
+        // CALCULATION FUNCTIONS
+        // ============================================
+
+        function calculate() {
+            // Calculate accumulation phase
+            const accumulationResult = calculateAccumulation();
+
+            // Update display
+            updateAccumulationDisplay(accumulationResult);
+            updateAccumulationChart(accumulationResult);
+
+            // Calculate withdrawal strategies
+            calculateWithdrawalStrategies(accumulationResult);
+
+            // Save state
+            saveStateToLocalStorage();
+        }
+
+        function calculateAccumulation() {
+            const years = state.retirementAge - state.currentAge;
+            const months = years * 12;
+            const monthlyReturn = getExpectedReturn() / 100 / 12;
+
+            let wealth = state.currentWealth;
+            const contributions = state.currentWealth;
+
+            const timeline = [];
+            timeline.push({ age: state.currentAge, wealth: wealth, contributions: contributions });
+
+            // Calculate wealth accumulation
+            for (let month = 1; month <= months; month++) {
+                wealth = wealth * (1 + monthlyReturn) + state.monthlySavings;
+
+                // Store yearly snapshots
+                if (month % 12 === 0) {
+                    const age = state.currentAge + (month / 12);
+                    const totalContributions = contributions + (state.monthlySavings * month);
+                    timeline.push({
+                        age: age,
+                        wealth: wealth,
+                        contributions: totalContributions
+                    });
+                }
+            }
+
+            const finalContributions = contributions + (state.monthlySavings * months);
+            const finalGains = wealth - finalContributions;
+
+            // Apply inflation adjustment if enabled
+            let displayTimeline = timeline;
+            let displayWealth = wealth;
+
+            if (state.inflationToggle) {
+                displayTimeline = timeline.map(point => {
+                    const yearsFromNow = point.age - state.currentAge;
+                    const inflationFactor = Math.pow(1 + state.inflationRate / 100, yearsFromNow);
+                    return {
+                        age: point.age,
+                        wealth: point.wealth / inflationFactor,
+                        contributions: point.contributions / inflationFactor
+                    };
+                });
+
+                const yearsToRetirement = state.retirementAge - state.currentAge;
+                const inflationFactor = Math.pow(1 + state.inflationRate / 100, yearsToRetirement);
+                displayWealth = wealth / inflationFactor;
+            }
+
+            return {
+                nominalWealth: wealth,
+                displayWealth: displayWealth,
+                totalContributions: finalContributions,
+                totalGains: finalGains,
+                timeline: displayTimeline,
+                nominalTimeline: timeline
+            };
+        }
+
+        function updateAccumulationDisplay(result) {
+            state.retirementWealth = result.nominalWealth;
+            state.totalContributions = result.totalContributions;
+            state.totalGains = result.totalGains;
+
+            // Display wealth (real if inflation toggle is on)
+            document.getElementById('retirementWealth').textContent =
+                formatCurrency(result.displayWealth);
+
+            // Contributions are always nominal (historical)
+            document.getElementById('totalContributions').textContent =
+                formatCurrency(result.totalContributions);
+
+            // Gains should also be displayed in real terms if inflation is on
+            const displayGains = result.displayWealth - result.totalContributions;
+            document.getElementById('totalGains').textContent =
+                formatCurrency(displayGains);
+        }
+
+        function updateAccumulationChart(result) {
+            const labels = result.timeline.map(p => p.age.toFixed(0));
+
+            if (state.inflationToggle) {
+                // Show both nominal and real to compare
+                const nominalData = result.nominalTimeline.map(p => p.wealth);
+                const realData = result.timeline.map(p => p.wealth);
+
+                accumulationChart.data.labels = labels;
+                accumulationChart.data.datasets = [
+                    {
+                        label: 'Nominal (ohne Inflationsbereinigung)',
+                        data: nominalData,
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    },
+                    {
+                        label: 'Real (Kaufkraft heute)',
+                        data: realData,
+                        borderColor: '#2563EB',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ];
+            } else {
+                // Show only nominal
+                const nominalData = result.nominalTimeline.map(p => p.wealth);
+
+                accumulationChart.data.labels = labels;
+                accumulationChart.data.datasets = [{
+                    label: 'Vermögensentwicklung (nominal)',
+                    data: nominalData,
+                    borderColor: '#2563EB',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }];
+            }
+
+            accumulationChart.update('active');
+        }
+
+        function calculateWithdrawalStrategies(accumulationResult) {
+            const startingWealth = accumulationResult.nominalWealth;
+            const costBasis = accumulationResult.totalContributions;
+
+            // Strategy 1: Eternal Annuity (Capital Preservation)
+            const strategy1 = calculateEternalAnnuity(startingWealth, costBasis);
+            updateCard1(strategy1);
+
+            // Strategy 2: 4% Rule
+            const strategy2 = calculate4PercentRule(startingWealth, costBasis);
+            updateCard2(strategy2);
+
+            // Strategy 3: Capital Depletion
+            const strategy3 = calculateCapitalDepletion(startingWealth, costBasis);
+            updateCard3(strategy3);
+
+            // Update withdrawal chart if a strategy is selected
+            if (state.selectedStrategy) {
+                updateWithdrawalChart();
+            }
+        }
+
+        function calculateEternalAnnuity(startingWealth, costBasis) {
+            // Only withdraw returns, preserve capital
+            const annualReturn = getExpectedReturn() / 100;
+            const annualGains = startingWealth * annualReturn;
+
+            // Apply taxes
+            const taxFreeMonthly = state.taxFreeAmount / 12;
+            const taxableGainsMonthly = Math.max(0, annualGains / 12 - taxFreeMonthly);
+            const taxes = taxableGainsMonthly * (state.capitalGainsTax / 100);
+
+            // Apply health insurance if applicable
+            let healthInsuranceFee = 0;
+            if (state.healthInsurance === 'gkv') {
+                healthInsuranceFee = taxableGainsMonthly * 0.19; // ~19% on gains
+            }
+
+            const monthlyWithdrawal = (annualGains / 12) - taxes - healthInsuranceFee;
+
+            return {
+                monthlyWithdrawal: Math.max(0, monthlyWithdrawal),
+                successRate: 100, // Always succeeds as capital is preserved
+                timeline: null // Will be calculated on demand
+            };
+        }
+
+        function calculate4PercentRule(startingWealth, costBasis) {
+            // Fixed 4% withdrawal, inflation adjusted
+            const annualWithdrawal = startingWealth * 0.04;
+
+            // Run Monte Carlo simulation
+            const simulation = runMonteCarloSimulation(
+                startingWealth,
+                costBasis,
+                annualWithdrawal,
+                'fixed',
+                state.desiredInheritance
+            );
+
+            return simulation;
+        }
+
+        function calculateCapitalDepletion(startingWealth, costBasis) {
+            // Dynamic withdrawal to deplete to inheritance amount
+            // Target: 95% success rate
+            const yearsInRetirement = state.lifeExpectancy - state.retirementAge;
+            const targetFinalValue = state.desiredInheritance;
+            const targetSuccessRate = 95; // 95% success rate
+
+            // Use annuity formula as starting point
+            const r = getExpectedReturn() / 100;
+            const n = yearsInRetirement;
+
+            // Initial PMT calculation with FV target
+            let initialWithdrawal;
+            if (targetFinalValue === 0) {
+                // Standard annuity
+                initialWithdrawal = startingWealth * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            } else {
+                // Adjusted for inheritance
+                const pvFactor = (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
+                const fvFactor = 1 / Math.pow(1 + r, n);
+                initialWithdrawal = (startingWealth - targetFinalValue * fvFactor) / pvFactor;
+            }
+
+            // Use binary search to find withdrawal that achieves ~95% success rate
+            const optimalWithdrawal = findOptimalWithdrawal(
+                startingWealth,
+                costBasis,
+                initialWithdrawal,
+                targetFinalValue,
+                targetSuccessRate
+            );
+
+            // Run final Monte Carlo simulation with optimal withdrawal
+            const simulation = runMonteCarloSimulation(
+                startingWealth,
+                costBasis,
+                optimalWithdrawal,
+                'dynamic',
+                state.desiredInheritance
+            );
+
+            return simulation;
+        }
+
+        function findOptimalWithdrawal(startingWealth, costBasis, initialWithdrawal, targetInheritance, targetSuccessRate) {
+            // Binary search to find withdrawal that achieves target success rate
+            let low = initialWithdrawal * 0.5; // Start at 50% of initial
+            let high = initialWithdrawal * 1.2; // Up to 120% of initial
+            let optimalWithdrawal = initialWithdrawal;
+            const tolerance = 2; // Within 2% of target success rate
+            const maxIterations = 10;
+
+            for (let i = 0; i < maxIterations; i++) {
+                const testWithdrawal = (low + high) / 2;
+
+                // Run quick simulation with fewer runs for speed
+                const quickSimulation = runMonteCarloSimulation(
+                    startingWealth,
+                    costBasis,
+                    testWithdrawal,
+                    'dynamic',
+                    targetInheritance,
+                    Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
+                );
+
+                const successRate = quickSimulation.successRate;
+
+                if (Math.abs(successRate - targetSuccessRate) < tolerance) {
+                    // Close enough
+                    optimalWithdrawal = testWithdrawal;
+                    break;
+                }
+
+                if (successRate < targetSuccessRate) {
+                    // Success rate too low, reduce withdrawal
+                    high = testWithdrawal;
+                } else {
+                    // Success rate too high, can increase withdrawal
+                    low = testWithdrawal;
+                }
+
+                optimalWithdrawal = testWithdrawal;
+            }
+
+            return optimalWithdrawal;
+        }
+
+        function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance, customRuns = null) {
+            const runs = customRuns || state.monteCarloRuns;
+            const years = state.lifeExpectancy - state.retirementAge;
+            const volatility = calculateVolatility(state.assetAllocation);
+            const expectedReturn = getExpectedReturn() / 100;
+            const inflationRate = state.inflationRate / 100;
+
+            const outcomes = [];
+            const allTimelines = [];
+
+            for (let run = 0; run < runs; run++) {
+                let wealth = startingWealth;
+                let remainingCostBasis = costBasis;
+                const timeline = [{ year: 0, wealth: wealth }];
+
+                let currentAnnualWithdrawal = annualWithdrawal;
+
+                for (let year = 1; year <= years; year++) {
+                    // Generate random return (normal distribution)
+                    const annualReturn = randomNormal(expectedReturn, volatility);
+
+                    // Adjust withdrawal for inflation
+                    if (mode === 'fixed') {
+                        currentAnnualWithdrawal = annualWithdrawal * Math.pow(1 + inflationRate, year);
+                    } else if (mode === 'dynamic') {
+                        // Recalculate based on remaining wealth and years
+                        const remainingYears = years - year + 1;
+                        const r = expectedReturn;
+                        if (remainingYears > 0) {
+                            if (targetInheritance === 0) {
+                                currentAnnualWithdrawal = wealth * (r * Math.pow(1 + r, remainingYears)) / (Math.pow(1 + r, remainingYears) - 1);
+                            } else {
+                                const pvFactor = (Math.pow(1 + r, remainingYears) - 1) / (r * Math.pow(1 + r, remainingYears));
+                                const fvFactor = 1 / Math.pow(1 + r, remainingYears);
+                                currentAnnualWithdrawal = (wealth - targetInheritance * fvFactor) / pvFactor;
+                            }
+                        }
+                    }
+
+                    // Calculate gains for the year
+                    const wealthBeforeWithdrawal = wealth * (1 + annualReturn);
+
+                    // Calculate net withdrawal (after taxes)
+                    const netWithdrawal = calculateNetWithdrawal(
+                        currentAnnualWithdrawal,
+                        wealth,
+                        remainingCostBasis
+                    );
+
+                    // Update wealth
+                    wealth = wealthBeforeWithdrawal - netWithdrawal.grossWithdrawal;
+
+                    // Update cost basis
+                    const withdrawalRatio = netWithdrawal.grossWithdrawal / wealthBeforeWithdrawal;
+                    remainingCostBasis = remainingCostBasis * (1 - withdrawalRatio);
+
+                    // Check if bankrupt
+                    if (wealth < 0) {
+                        wealth = 0;
+                        outcomes.push({ success: false, finalWealth: 0 });
+                        timeline.push({ year: year, wealth: 0 });
+                        break;
+                    }
+
+                    timeline.push({ year: year, wealth: wealth });
+
+                    // Check if last year
+                    if (year === years) {
+                        outcomes.push({
+                            success: wealth >= targetInheritance,
+                            finalWealth: wealth
+                        });
+                    }
+                }
+
+                allTimelines.push(timeline);
+            }
+
+            // Calculate statistics
+            const successCount = outcomes.filter(o => o.success).length;
+            const successRate = (successCount / runs) * 100;
+
+            const finalWealths = outcomes.map(o => o.finalWealth);
+            const avgFinalWealth = finalWealths.reduce((a, b) => a + b, 0) / finalWealths.length;
+
+            // Calculate withdrawal statistics
+            const monthlyWithdrawals = [];
+            for (let run = 0; run < Math.min(100, runs); run++) {
+                const timeline = allTimelines[run];
+                for (let i = 1; i < timeline.length; i++) {
+                    const yearlyWithdrawal = timeline[i - 1].wealth - timeline[i].wealth +
+                        (timeline[i].wealth * (expectedReturn));
+                    monthlyWithdrawals.push(yearlyWithdrawal / 12);
+                }
+            }
+
+            const avgMonthlyWithdrawal = monthlyWithdrawals.reduce((a, b) => a + b, 0) / monthlyWithdrawals.length;
+            const minMonthlyWithdrawal = Math.min(...monthlyWithdrawals);
+            const maxMonthlyWithdrawal = Math.max(...monthlyWithdrawals);
+
+            // Calculate median timeline for display
+            const medianTimeline = calculateMedianTimeline(allTimelines);
+
+            return {
+                monthlyWithdrawal: avgMonthlyWithdrawal,
+                minMonthly: minMonthlyWithdrawal,
+                maxMonthly: maxMonthlyWithdrawal,
+                successRate: successRate,
+                avgFinalWealth: avgFinalWealth,
+                timeline: medianTimeline
+            };
+        }
+
+        function calculateNetWithdrawal(desiredWithdrawal, currentWealth, costBasis) {
+            // Calculate gain portion
+            const gainRatio = Math.max(0, (currentWealth - costBasis) / currentWealth);
+            const gainPortion = desiredWithdrawal * gainRatio;
+
+            // Apply tax-free amount
+            const taxFreeAnnual = state.taxFreeAmount;
+            const taxableGain = Math.max(0, gainPortion - taxFreeAnnual);
+
+            // Calculate taxes
+            const capitalGainsTax = taxableGain * (state.capitalGainsTax / 100);
+
+            // Calculate health insurance fees
+            let healthInsuranceFee = 0;
+            if (state.healthInsurance === 'gkv') {
+                healthInsuranceFee = taxableGain * 0.19;
+            }
+
+            // Total deductions
+            const totalDeductions = capitalGainsTax + healthInsuranceFee;
+
+            // Gross withdrawal needed to achieve desired net
+            const grossWithdrawal = desiredWithdrawal + totalDeductions;
+
+            return {
+                grossWithdrawal: grossWithdrawal,
+                netWithdrawal: desiredWithdrawal,
+                taxes: capitalGainsTax,
+                healthInsurance: healthInsuranceFee
+            };
+        }
+
+        function calculateVolatility(assetAllocation) {
+            // Linear interpolation between safe and risky volatility
+            const volaSafe = 0.02; // 2% for bonds/cash
+            const volaRisky = 0.18; // 18% for stocks
+
+            const allocationPercent = assetAllocation / 100;
+            return volaSafe + (allocationPercent * (volaRisky - volaSafe));
+        }
+
+        function getExpectedReturn() {
+            // Calculate expected return based on asset allocation
+            // Historical averages (real, after inflation):
+            const returnSafe = 0.025; // 2.5% for bonds/cash
+            const returnRisky = 0.075; // 7.5% for stocks (MSCI World historical)
+
+            const allocationPercent = state.assetAllocation / 100;
+            return (returnSafe + (allocationPercent * (returnRisky - returnSafe))) * 100; // Return as percentage
+        }
+
+        function randomNormal(mean, stdDev) {
+            // Box-Muller transform for normal distribution
+            const u1 = Math.random();
+            const u2 = Math.random();
+            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+            return mean + z0 * stdDev;
+        }
+
+        function calculateMedianTimeline(timelines) {
+            if (timelines.length === 0) return [];
+
+            const maxYears = Math.max(...timelines.map(t => t.length));
+            const medianTimeline = [];
+
+            for (let year = 0; year < maxYears; year++) {
+                const wealthsAtYear = timelines
+                    .filter(t => t.length > year)
+                    .map(t => t[year].wealth)
+                    .sort((a, b) => a - b);
+
+                if (wealthsAtYear.length > 0) {
+                    const medianWealth = wealthsAtYear[Math.floor(wealthsAtYear.length / 2)];
+                    medianTimeline.push({
+                        age: state.retirementAge + year,
+                        wealth: medianWealth
+                    });
+                }
+            }
+
+            return medianTimeline;
+        }
+
+        // ============================================
+        // CARD UPDATES
+        // ============================================
+
+        function updateCard1(result) {
+            document.getElementById('card1Amount').textContent =
+                formatCurrency(result.monthlyWithdrawal);
+            document.getElementById('card1Success').textContent =
+                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+        }
+
+        function updateCard2(result) {
+            document.getElementById('card2Amount').textContent =
+                formatCurrency(result.monthlyWithdrawal);
+            document.getElementById('card2Success').textContent =
+                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+        }
+
+        function updateCard3(result) {
+            document.getElementById('card3Amount').textContent =
+                formatCurrency(result.monthlyWithdrawal);
+            document.getElementById('card3Range').textContent =
+                `Schwankung: ${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
+            document.getElementById('card3Success').textContent =
+                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+        }
+
+        // ============================================
+        // WITHDRAWAL CHART UPDATE
+        // ============================================
+
+        function updateWithdrawalChart() {
+            if (!state.selectedStrategy) return;
+
+            const accumulationResult = calculateAccumulation();
+            const startingWealth = accumulationResult.nominalWealth;
+            const costBasis = accumulationResult.totalContributions;
+
+            let nominalTimeline = [];
+            let label = '';
+            let color = '';
+
+            if (state.selectedStrategy === 1) {
+                // Eternal Annuity - flat line
+                const years = state.lifeExpectancy - state.retirementAge;
+                nominalTimeline = Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    wealth: startingWealth
+                }));
+                label = 'Ewige Rente (Kapitalerhalt)';
+                color = '#059669';
+            } else if (state.selectedStrategy === 2) {
+                const result = calculate4PercentRule(startingWealth, costBasis);
+                nominalTimeline = result.timeline;
+                label = '4%-Regel';
+                color = '#D97706';
+            } else if (state.selectedStrategy === 3) {
+                const result = calculateCapitalDepletion(startingWealth, costBasis);
+                nominalTimeline = result.timeline;
+                label = 'Kapitalverzehr';
+                color = '#E11D48';
+            }
+
+            const labels = nominalTimeline.map(p => p.age.toFixed(0));
+
+            if (state.inflationToggle && nominalTimeline.length > 0) {
+                // Show both nominal and real lines
+                const nominalData = nominalTimeline.map(p => p.wealth);
+
+                const realTimeline = nominalTimeline.map(point => {
+                    const yearsFromNow = point.age - state.currentAge;
+                    const inflationFactor = Math.pow(1 + state.inflationRate / 100, yearsFromNow);
+                    return point.wealth / inflationFactor;
+                });
+
+                withdrawalChart.data.labels = labels;
+                withdrawalChart.data.datasets = [
+                    {
+                        label: label + ' - Nominal',
+                        data: nominalData,
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'rgba(148, 163, 184, 0.05)',
+                        fill: false,
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    },
+                    {
+                        label: label + ' - Real (Kaufkraft heute)',
+                        data: realTimeline,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ];
+            } else {
+                // Show only nominal
+                const nominalData = nominalTimeline.map(p => p.wealth);
+
+                withdrawalChart.data.labels = labels;
+                withdrawalChart.data.datasets = [{
+                    label: label + ' - Nominal',
+                    data: nominalData,
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    fill: true,
+                    tension: 0.4
+                }];
+            }
+
+            // Add inheritance line if set
+            if (state.desiredInheritance > 0) {
+                const inheritanceLineValue = state.inflationToggle
+                    ? state.desiredInheritance // Show real value when toggle is on
+                    : state.desiredInheritance;
+
+                const inheritanceLine = Array(labels.length).fill(inheritanceLineValue);
+                withdrawalChart.data.datasets.push({
+                    label: 'Gewünschtes Erbe',
+                    data: inheritanceLine,
+                    borderColor: '#64748b',
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0
+                });
+            }
+
+            withdrawalChart.update();
+        }
+
+        // ============================================
+        // PDF EXPORT
+        // ============================================
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(37, 99, 235);
+            doc.text('Wealth Pilot', 20, 20);
+
+            doc.setFontSize(12);
+            doc.setTextColor(100, 116, 139);
+            doc.text('Ruhestandsplanung Report', 20, 28);
+
+            // Date
+            doc.setFontSize(10);
+            doc.text(`Erstellt am: ${new Date().toLocaleDateString('de-DE')}`, 20, 35);
+
+            // Section A: Ansparphase
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Ansparphase', 20, 45);
+
+            doc.setFontSize(10);
+            doc.text(`Aktuelles Alter: ${state.currentAge} Jahre`, 20, 52);
+            doc.text(`Rentenalter: ${state.retirementAge} Jahre`, 20, 58);
+            doc.text(`Aktuelles Vermögen: ${formatCurrency(state.currentWealth)}`, 20, 64);
+            doc.text(`Monatliche Sparrate: ${formatCurrency(state.monthlySavings)}`, 20, 70);
+            doc.text(`Erwartete Rendite: ${getExpectedReturn().toFixed(1)}% p.a. (aus ${state.assetAllocation}% Aktien)`, 20, 76);
+
+            doc.text(`Vermögen bei Rentenbeginn: ${formatCurrency(state.retirementWealth)}`, 20, 86);
+            doc.text(`Gesamte Einzahlungen: ${formatCurrency(state.totalContributions)}`, 20, 92);
+            doc.text(`Erzielte Gewinne: ${formatCurrency(state.totalGains)}`, 20, 98);
+
+            // Section B: Entnahmestrategie
+            doc.setFontSize(14);
+            doc.text('Entnahmestrategie', 20, 110);
+
+            doc.setFontSize(10);
+            if (state.selectedStrategy === 1) {
+                doc.text('Gewählte Strategie: Ewige Rente (Kapitalerhalt)', 20, 117);
+            } else if (state.selectedStrategy === 2) {
+                doc.text('Gewählte Strategie: 4%-Regel', 20, 117);
+            } else if (state.selectedStrategy === 3) {
+                doc.text('Gewählte Strategie: Kapitalverzehr', 20, 117);
+            } else {
+                doc.text('Keine Strategie ausgewählt', 20, 117);
+            }
+
+            // Section C: Expert Settings
+            doc.setFontSize(14);
+            doc.text('Experten-Einstellungen', 20, 130);
+
+            doc.setFontSize(10);
+            doc.text(`Inflationsrate: ${state.inflationRate}% p.a.`, 20, 137);
+            doc.text(`Asset Allocation: ${state.assetAllocation}% Aktien / ${100 - state.assetAllocation}% Sicher`, 20, 143);
+            doc.text(`Gewünschtes Erbe: ${formatCurrency(state.desiredInheritance)}`, 20, 149);
+            doc.text(`Lebenserwartung: ${state.lifeExpectancy} Jahre`, 20, 155);
+            doc.text(`Abgeltungssteuer: ${state.capitalGainsTax}%`, 20, 161);
+
+            let kvStatus = '';
+            if (state.healthInsurance === 'kvdr') kvStatus = 'Pflichtversichert (KVdR)';
+            else if (state.healthInsurance === 'gkv') kvStatus = 'Freiwillig GKV';
+            else kvStatus = 'Privat (PKV)';
+            doc.text(`Krankenversicherung: ${kvStatus}`, 20, 167);
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('Wealth Pilot - Privacy-First Ruhestandsplanung', 20, 280);
+            doc.text('Alle Daten wurden lokal in Ihrem Browser verarbeitet.', 20, 285);
+
+            // Save
+            doc.save('wealth-pilot-report.pdf');
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+    </script>
+
+</body>
+</html>
