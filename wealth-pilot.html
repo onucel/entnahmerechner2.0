@@ -679,7 +679,8 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            display: true,
+                            position: 'top'
                         },
                         tooltip: {
                             callbacks: {
@@ -842,9 +843,15 @@
             const labels = result.timeline.map(p => p.age.toFixed(0));
             const data = result.timeline.map(p => p.wealth);
 
+            // Update dataset label based on inflation toggle
+            const datasetLabel = state.inflationToggle
+                ? 'Vermögensentwicklung (Kaufkraft heute)'
+                : 'Vermögensentwicklung (nominal)';
+
             accumulationChart.data.labels = labels;
             accumulationChart.data.datasets[0].data = data;
-            accumulationChart.update();
+            accumulationChart.data.datasets[0].label = datasetLabel;
+            accumulationChart.update('active');
         }
 
         function calculateWithdrawalStrategies(accumulationResult) {
@@ -912,30 +919,41 @@
 
         function calculateCapitalDepletion(startingWealth, costBasis) {
             // Dynamic withdrawal to deplete to inheritance amount
+            // Target: 95% success rate
             const yearsInRetirement = state.lifeExpectancy - state.retirementAge;
             const targetFinalValue = state.desiredInheritance;
+            const targetSuccessRate = 95; // 95% success rate
 
-            // Use annuity formula adjusted for target FV
+            // Use annuity formula as starting point
             const r = state.expectedReturn / 100;
             const n = yearsInRetirement;
 
-            // PMT calculation with FV target
-            let annualWithdrawal;
+            // Initial PMT calculation with FV target
+            let initialWithdrawal;
             if (targetFinalValue === 0) {
                 // Standard annuity
-                annualWithdrawal = startingWealth * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+                initialWithdrawal = startingWealth * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
             } else {
                 // Adjusted for inheritance
                 const pvFactor = (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
                 const fvFactor = 1 / Math.pow(1 + r, n);
-                annualWithdrawal = (startingWealth - targetFinalValue * fvFactor) / pvFactor;
+                initialWithdrawal = (startingWealth - targetFinalValue * fvFactor) / pvFactor;
             }
 
-            // Run Monte Carlo simulation
+            // Use binary search to find withdrawal that achieves ~95% success rate
+            const optimalWithdrawal = findOptimalWithdrawal(
+                startingWealth,
+                costBasis,
+                initialWithdrawal,
+                targetFinalValue,
+                targetSuccessRate
+            );
+
+            // Run final Monte Carlo simulation with optimal withdrawal
             const simulation = runMonteCarloSimulation(
                 startingWealth,
                 costBasis,
-                annualWithdrawal,
+                optimalWithdrawal,
                 'dynamic',
                 state.desiredInheritance
             );
@@ -943,8 +961,51 @@
             return simulation;
         }
 
-        function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance) {
-            const runs = state.monteCarloRuns;
+        function findOptimalWithdrawal(startingWealth, costBasis, initialWithdrawal, targetInheritance, targetSuccessRate) {
+            // Binary search to find withdrawal that achieves target success rate
+            let low = initialWithdrawal * 0.5; // Start at 50% of initial
+            let high = initialWithdrawal * 1.2; // Up to 120% of initial
+            let optimalWithdrawal = initialWithdrawal;
+            const tolerance = 2; // Within 2% of target success rate
+            const maxIterations = 10;
+
+            for (let i = 0; i < maxIterations; i++) {
+                const testWithdrawal = (low + high) / 2;
+
+                // Run quick simulation with fewer runs for speed
+                const quickSimulation = runMonteCarloSimulation(
+                    startingWealth,
+                    costBasis,
+                    testWithdrawal,
+                    'dynamic',
+                    targetInheritance,
+                    Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
+                );
+
+                const successRate = quickSimulation.successRate;
+
+                if (Math.abs(successRate - targetSuccessRate) < tolerance) {
+                    // Close enough
+                    optimalWithdrawal = testWithdrawal;
+                    break;
+                }
+
+                if (successRate < targetSuccessRate) {
+                    // Success rate too low, reduce withdrawal
+                    high = testWithdrawal;
+                } else {
+                    // Success rate too high, can increase withdrawal
+                    low = testWithdrawal;
+                }
+
+                optimalWithdrawal = testWithdrawal;
+            }
+
+            return optimalWithdrawal;
+        }
+
+        function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance, customRuns = null) {
+            const runs = customRuns || state.monteCarloRuns;
             const years = state.lifeExpectancy - state.retirementAge;
             const volatility = calculateVolatility(state.assetAllocation);
             const expectedReturn = state.expectedReturn / 100;
