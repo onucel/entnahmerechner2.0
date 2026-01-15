@@ -301,6 +301,15 @@
                     <canvas id="withdrawalChart"></canvas>
                 </div>
             </div>
+
+            <!-- Portfolio Success Rate Chart -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Portfolio Überlebenswahrscheinlichkeit über Zeit</h3>
+                <p class="text-sm text-slate-600 mb-4">Zeigt den Prozentsatz der Monte-Carlo-Simulationen, die in jedem Jahr noch erfolgreich sind</p>
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
         </section>
 
         <!-- Section C: Detail Settings -->
@@ -438,6 +447,7 @@
         // Chart instances
         let accumulationChart = null;
         let withdrawalChart = null;
+        let successRateChart = null;
 
         // ============================================
         // INITIALIZATION
@@ -655,8 +665,9 @@
                 }
             });
 
-            // Update withdrawal chart
+            // Update withdrawal chart and success rate chart
             updateWithdrawalChart();
+            updateSuccessRateChart();
         }
 
         // ============================================
@@ -745,9 +756,61 @@
                 }
             });
 
+            // Success Rate Chart
+            const successCtx = document.getElementById('successRateChart').getContext('2d');
+            successRateChart = new Chart(successCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Erfolgsrate (%)',
+                        data: [],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Erfolgsrate: ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Alter (Jahre)'
+                            }
+                        }
+                    }
+                }
+            });
+
             // Set canvas height
             document.getElementById('accumulationChart').parentElement.style.height = '300px';
             document.getElementById('withdrawalChart').parentElement.style.height = '400px';
+            document.getElementById('successRateChart').parentElement.style.height = '300px';
         }
 
         // ============================================
@@ -910,9 +973,10 @@
             const strategy3 = calculateCapitalDepletion(startingWealth, costBasis);
             updateCard3(strategy3);
 
-            // Update withdrawal chart if a strategy is selected
+            // Update withdrawal chart and success rate chart if a strategy is selected
             if (state.selectedStrategy) {
                 updateWithdrawalChart();
+                updateSuccessRateChart();
             }
         }
 
@@ -1053,6 +1117,8 @@
 
             const outcomes = [];
             const allTimelines = [];
+            const successByYear = Array(years + 1).fill(0).map(() => 0); // Track successes at each year
+            successByYear[0] = runs; // Everyone starts with wealth
 
             for (let run = 0; run < runs; run++) {
                 let wealth = startingWealth;
@@ -1060,6 +1126,7 @@
                 const timeline = [{ year: 0, wealth: wealth }];
 
                 let currentAnnualWithdrawal = annualWithdrawal;
+                let failed = false;
 
                 for (let year = 1; year <= years; year++) {
                     // Generate random return (normal distribution)
@@ -1105,10 +1172,16 @@
                         wealth = 0;
                         outcomes.push({ success: false, finalWealth: 0 });
                         timeline.push({ year: year, wealth: 0 });
+                        failed = true;
                         break;
                     }
 
                     timeline.push({ year: year, wealth: wealth });
+
+                    // Track success at this year (still has wealth > target)
+                    if (wealth >= targetInheritance) {
+                        successByYear[year]++;
+                    }
 
                     // Check if last year
                     if (year === years) {
@@ -1147,13 +1220,17 @@
             // Calculate median timeline for display
             const medianTimeline = calculateMedianTimeline(allTimelines);
 
+            // Convert successByYear to percentages
+            const successRateByYear = successByYear.map(count => (count / runs) * 100);
+
             return {
                 monthlyWithdrawal: avgMonthlyWithdrawal,
                 minMonthly: minMonthlyWithdrawal,
                 maxMonthly: maxMonthlyWithdrawal,
                 successRate: successRate,
                 avgFinalWealth: avgFinalWealth,
-                timeline: medianTimeline
+                timeline: medianTimeline,
+                successRateByYear: successRateByYear
             };
         }
 
@@ -1368,6 +1445,43 @@
             }
 
             withdrawalChart.update();
+        }
+
+        function updateSuccessRateChart() {
+            if (!state.selectedStrategy) {
+                // Clear chart if no strategy selected
+                successRateChart.data.labels = [];
+                successRateChart.data.datasets[0].data = [];
+                successRateChart.update();
+                return;
+            }
+
+            const accumulationResult = calculateAccumulation();
+            const startingWealth = accumulationResult.nominalWealth;
+            const costBasis = accumulationResult.totalContributions;
+
+            let simulationResult = null;
+
+            if (state.selectedStrategy === 1) {
+                simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
+            } else if (state.selectedStrategy === 2) {
+                simulationResult = calculate4PercentRule(startingWealth, costBasis);
+            } else if (state.selectedStrategy === 3) {
+                simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
+            }
+
+            if (!simulationResult || !simulationResult.successRateByYear) {
+                return;
+            }
+
+            // Create labels for each year (age-based)
+            const years = state.lifeExpectancy - state.retirementAge;
+            const labels = Array.from({ length: years + 1 }, (_, i) => state.retirementAge + i);
+
+            // Update chart
+            successRateChart.data.labels = labels;
+            successRateChart.data.datasets[0].data = simulationResult.successRateByYear;
+            successRateChart.update();
         }
 
         // ============================================
