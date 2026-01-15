@@ -1132,31 +1132,39 @@
                     // Generate random return (normal distribution)
                     const annualReturn = randomNormal(expectedReturn, volatility);
 
+                    // Calculate gains for the year
+                    const wealthBeforeWithdrawal = wealth * (1 + annualReturn);
+
                     // Adjust withdrawal for inflation
                     if (mode === 'fixed') {
                         currentAnnualWithdrawal = annualWithdrawal * Math.pow(1 + inflationRate, year);
                     } else if (mode === 'dynamic') {
                         // Recalculate based on remaining wealth and years
                         const remainingYears = years - year + 1;
-                        const r = expectedReturn;
-                        if (remainingYears > 0) {
+
+                        // Special handling for last year: withdraw everything except target inheritance
+                        if (remainingYears === 1) {
+                            currentAnnualWithdrawal = Math.max(0, wealthBeforeWithdrawal - targetInheritance);
+                        } else {
+                            // Use wealth after return for more accurate calculation
+                            const r = expectedReturn;
                             if (targetInheritance === 0) {
-                                currentAnnualWithdrawal = wealth * (r * Math.pow(1 + r, remainingYears)) / (Math.pow(1 + r, remainingYears) - 1);
+                                currentAnnualWithdrawal = wealthBeforeWithdrawal * (r * Math.pow(1 + r, remainingYears)) / (Math.pow(1 + r, remainingYears) - 1);
                             } else {
                                 const pvFactor = (Math.pow(1 + r, remainingYears) - 1) / (r * Math.pow(1 + r, remainingYears));
                                 const fvFactor = 1 / Math.pow(1 + r, remainingYears);
-                                currentAnnualWithdrawal = (wealth - targetInheritance * fvFactor) / pvFactor;
+                                currentAnnualWithdrawal = Math.max(0, (wealthBeforeWithdrawal - targetInheritance * fvFactor) / pvFactor);
                             }
+
+                            // Safety check: never withdraw more than available minus target inheritance
+                            currentAnnualWithdrawal = Math.min(currentAnnualWithdrawal, Math.max(0, wealthBeforeWithdrawal - targetInheritance));
                         }
                     }
-
-                    // Calculate gains for the year
-                    const wealthBeforeWithdrawal = wealth * (1 + annualReturn);
 
                     // Calculate net withdrawal (after taxes)
                     const netWithdrawal = calculateNetWithdrawal(
                         currentAnnualWithdrawal,
-                        wealth,
+                        wealthBeforeWithdrawal, // Use wealth after return for accurate tax calculation
                         remainingCostBasis
                     );
 
