@@ -449,6 +449,7 @@
             initializeCharts();
             updateInflationToggleUI();
             updateHealthInsuranceInfo();
+            updateAssetAllocationLabel(); // Initialize asset allocation display
             calculate();
         });
 
@@ -833,14 +834,18 @@
             state.totalContributions = result.totalContributions;
             state.totalGains = result.totalGains;
 
+            // Display wealth (real if inflation toggle is on)
             document.getElementById('retirementWealth').textContent =
                 formatCurrency(result.displayWealth);
 
+            // Contributions are always nominal (historical)
             document.getElementById('totalContributions').textContent =
                 formatCurrency(result.totalContributions);
 
+            // Gains should also be displayed in real terms if inflation is on
+            const displayGains = result.displayWealth - result.totalContributions;
             document.getElementById('totalGains').textContent =
-                formatCurrency(result.totalGains);
+                formatCurrency(displayGains);
         }
 
         function updateAccumulationChart(result) {
@@ -1273,14 +1278,14 @@
             const startingWealth = accumulationResult.nominalWealth;
             const costBasis = accumulationResult.totalContributions;
 
-            let timeline = [];
+            let nominalTimeline = [];
             let label = '';
             let color = '';
 
             if (state.selectedStrategy === 1) {
                 // Eternal Annuity - flat line
                 const years = state.lifeExpectancy - state.retirementAge;
-                timeline = Array.from({ length: years + 1 }, (_, i) => ({
+                nominalTimeline = Array.from({ length: years + 1 }, (_, i) => ({
                     age: state.retirementAge + i,
                     wealth: startingWealth
                 }));
@@ -1288,44 +1293,70 @@
                 color = '#059669';
             } else if (state.selectedStrategy === 2) {
                 const result = calculate4PercentRule(startingWealth, costBasis);
-                timeline = result.timeline;
+                nominalTimeline = result.timeline;
                 label = '4%-Regel';
                 color = '#D97706';
             } else if (state.selectedStrategy === 3) {
                 const result = calculateCapitalDepletion(startingWealth, costBasis);
-                timeline = result.timeline;
+                nominalTimeline = result.timeline;
                 label = 'Kapitalverzehr';
                 color = '#E11D48';
             }
 
-            // Apply inflation adjustment if enabled
-            if (state.inflationToggle && timeline.length > 0) {
-                timeline = timeline.map(point => {
+            const labels = nominalTimeline.map(p => p.age.toFixed(0));
+
+            if (state.inflationToggle && nominalTimeline.length > 0) {
+                // Show both nominal and real lines
+                const nominalData = nominalTimeline.map(p => p.wealth);
+
+                const realTimeline = nominalTimeline.map(point => {
                     const yearsFromNow = point.age - state.currentAge;
                     const inflationFactor = Math.pow(1 + state.inflationRate / 100, yearsFromNow);
-                    return {
-                        age: point.age,
-                        wealth: point.wealth / inflationFactor
-                    };
+                    return point.wealth / inflationFactor;
                 });
+
+                withdrawalChart.data.labels = labels;
+                withdrawalChart.data.datasets = [
+                    {
+                        label: label + ' - Nominal',
+                        data: nominalData,
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'rgba(148, 163, 184, 0.05)',
+                        fill: false,
+                        tension: 0.4,
+                        borderDash: [5, 5]
+                    },
+                    {
+                        label: label + ' - Real (Kaufkraft heute)',
+                        data: realTimeline,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ];
+            } else {
+                // Show only nominal
+                const nominalData = nominalTimeline.map(p => p.wealth);
+
+                withdrawalChart.data.labels = labels;
+                withdrawalChart.data.datasets = [{
+                    label: label + ' - Nominal',
+                    data: nominalData,
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    fill: true,
+                    tension: 0.4
+                }];
             }
-
-            const labels = timeline.map(p => p.age.toFixed(0));
-            const data = timeline.map(p => p.wealth);
-
-            withdrawalChart.data.labels = labels;
-            withdrawalChart.data.datasets = [{
-                label: label,
-                data: data,
-                borderColor: color,
-                backgroundColor: color + '20',
-                fill: true,
-                tension: 0.4
-            }];
 
             // Add inheritance line if set
             if (state.desiredInheritance > 0) {
-                const inheritanceLine = Array(labels.length).fill(state.desiredInheritance);
+                const inheritanceLineValue = state.inflationToggle
+                    ? state.desiredInheritance // Show real value when toggle is on
+                    : state.desiredInheritance;
+
+                const inheritanceLine = Array(labels.length).fill(inheritanceLineValue);
                 withdrawalChart.data.datasets.push({
                     label: 'Gewünschtes Erbe',
                     data: inheritanceLine,
