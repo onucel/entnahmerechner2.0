@@ -59,6 +59,7 @@ Drei wissenschaftlich fundierte Strategien mit jeweils eigener Monte-Carlo-Simul
 **Steuern & Sozialabgaben** (Der "German Factor")
 - Abgeltungssteuer: 26,375% (25% + 5,5% Soli)
 - Sparerpauschbetrag: 1.000 € (ab 2024)
+- Teilfreistellung für Aktien-ETFs: 30% (konfigurierbar) - Steuerbefreiung auf Kursgewinne
 - Krankenversicherungsstatus:
   - **KVdR** (Pflichtversichert): Keine Abzüge auf Kapitalerträge
   - **GKV** (Freiwillig): ~19% Abzug auf Gewinnanteil
@@ -66,6 +67,11 @@ Drei wissenschaftlich fundierte Strategien mit jeweils eigener Monte-Carlo-Simul
 
 **Monte Carlo**
 - Anzahl Simulationen (Standard: 500)
+
+**Rendite-Annahmen** (Neu!)
+- Erwartete Rendite Sichere Anlagen: 2,5% p.a. (konfigurierbar)
+- Erwartete Rendite Aktien: 7,5% p.a. (konfigurierbar)
+- Erlaubt individuelle Anpassung der Renditeerwartungen basierend auf persönlichen Markteinschätzungen
 
 ## 🔬 Mathematische Grundlagen
 
@@ -252,8 +258,7 @@ Die folgenden Vereinfachungen wurden getroffen:
 1. **Vorabpauschale**: Nicht explizit modelliert (bei thesaurierenden ETFs relevant)
 2. **Kirchensteuer**: Nicht berücksichtigt (8-9% auf Abgeltungssteuer)
 3. **GKV-Beiträge**: Vereinfacht als 19% pauschal
-4. **Teilfreistellung**: ETF-Teilfreistellung nicht berücksichtigt
-5. **Renditeverteilung**: Normalverteilung (in Realität sind Märkte nicht perfekt normalverteilt)
+4. **Renditeverteilung**: Normalverteilung (in Realität sind Märkte nicht perfekt normalverteilt)
 
 ### Rendite-Annahmen
 Historische Durchschnittswerte (vor Inflation):
@@ -283,9 +288,18 @@ Mögliche Features für zukünftige Versionen:
 - [ ] Mehrere Szenarien vergleichen
 - [ ] Import/Export von Einstellungen (JSON)
 - [ ] Dark Mode
-- [ ] Erweiterte Steuersimulation (Kirchensteuer, Teilfreistellung)
+- [ ] Erweiterte Steuersimulation (Kirchensteuer)
 - [ ] Renten-Integration (gesetzliche/private Rente)
 - [ ] Mehrere Währungen
+
+## 📝 Changelog
+
+### Version 1.1 - Januar 2026
+**Neue Features:**
+- ✅ **Teilfreistellung implementiert**: 30% Steuerbefreiung für Aktien-ETFs (konfigurierbar)
+- ✅ **Konfigurierbare Rendite-Annahmen**: Erwartete Renditen für sichere und risikoreiche Anlagen können individuell angepasst werden
+- ✅ **Ewige Rente Chart-Fix**: Success Rate Chart funktioniert jetzt auch für die "Ewige Rente" Strategie
+- ✅ **Performance-Optimierung**: Caching von Monte-Carlo-Simulationen im Binary Search reduziert Berechnungszeit
 
 ## 📚 Weitere Ressourcen
 
@@ -322,4 +336,4 @@ Verbesserungsvorschläge und Bug-Reports sind willkommen!
 
 **Entwickelt mit 💙 für die deutsche FIRE- und ETF-Community**
 
-*Version 1.0 - Januar 2026*
+*Version 1.1 - Januar 2026*

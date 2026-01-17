@@ -379,6 +379,17 @@
                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <p class="text-xs text-slate-500 mt-1">Ab 2024: 1.000 € (Einzelperson) / 2.000 € (Ehepaar)</p>
                         </div>
+
+                        <!-- Teilfreistellung (Partial Tax Exemption) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Teilfreistellung für Aktien-ETFs</label>
+                            <div class="flex items-center">
+                                <input type="number" id="teilfreistellung" value="30" min="0" max="100" step="1"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <span class="ml-2 text-slate-600">%</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Steuerbefreiung auf Kursgewinne (30% für Aktien-ETFs, 0% für Anleihen)</p>
+                        </div>
                     </div>
                 </div>
 
@@ -393,6 +404,35 @@
                             <input type="number" id="monteCarloRuns" value="500" min="100" max="10000" step="100"
                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <p class="text-xs text-slate-500 mt-1">Mehr Läufe = genauere Ergebnisse, aber langsamer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Return Assumptions -->
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Rendite-Annahmen</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- Expected Return Safe Assets -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Erwartete Rendite Sichere Anlagen</label>
+                            <div class="flex items-center">
+                                <input type="number" id="expectedReturnSafe" value="2.5" min="0" max="20" step="0.1"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <span class="ml-2 text-slate-600">% p.a.</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Anleihen, Tagesgeld (real, nach Inflation)</p>
+                        </div>
+
+                        <!-- Expected Return Risky Assets -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Erwartete Rendite Aktien</label>
+                            <div class="flex items-center">
+                                <input type="number" id="expectedReturnRisky" value="7.5" min="0" max="20" step="0.1"
+                                       class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <span class="ml-2 text-slate-600">% p.a.</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">MSCI World historisch (real, nach Inflation)</p>
                         </div>
                     </div>
                 </div>
@@ -434,6 +474,9 @@
             healthInsurance: 'kvdr',
             taxFreeAmount: 1000,
             monteCarloRuns: 500,
+            expectedReturnSafe: 2.5, // Expected return for safe assets (bonds/cash) in %
+            expectedReturnRisky: 7.5, // Expected return for risky assets (stocks) in %
+            teilfreistellung: 30, // Partial tax exemption for equity ETFs (% of gains exempt from tax)
 
             // Computed values
             retirementWealth: 0,
@@ -489,6 +532,9 @@
                     document.getElementById('healthInsurance').value = state.healthInsurance;
                     document.getElementById('taxFreeAmount').value = state.taxFreeAmount;
                     document.getElementById('monteCarloRuns').value = state.monteCarloRuns;
+                    document.getElementById('expectedReturnSafe').value = state.expectedReturnSafe || 2.5;
+                    document.getElementById('expectedReturnRisky').value = state.expectedReturnRisky || 7.5;
+                    document.getElementById('teilfreistellung').value = state.teilfreistellung || 30;
 
                     updateAssetAllocationLabel();
                 } catch (e) {
@@ -577,6 +623,23 @@
 
             document.getElementById('monteCarloRuns').addEventListener('input', (e) => {
                 state.monteCarloRuns = parseInt(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('expectedReturnSafe').addEventListener('input', (e) => {
+                state.expectedReturnSafe = parseFloat(e.target.value);
+                updateAssetAllocationLabel();
+                calculate();
+            });
+
+            document.getElementById('expectedReturnRisky').addEventListener('input', (e) => {
+                state.expectedReturnRisky = parseFloat(e.target.value);
+                updateAssetAllocationLabel();
+                calculate();
+            });
+
+            document.getElementById('teilfreistellung').addEventListener('input', (e) => {
+                state.teilfreistellung = parseFloat(e.target.value);
                 calculate();
             });
 
@@ -985,9 +1048,13 @@
             const annualReturn = getExpectedReturn() / 100;
             const annualGains = startingWealth * annualReturn;
 
+            // Apply Teilfreistellung (partial tax exemption for equity ETFs)
+            const teilfreistellungFactor = (100 - state.teilfreistellung) / 100;
+            const gainsAfterTeilfreistellung = annualGains * teilfreistellungFactor;
+
             // Apply taxes
             const taxFreeMonthly = state.taxFreeAmount / 12;
-            const taxableGainsMonthly = Math.max(0, annualGains / 12 - taxFreeMonthly);
+            const taxableGainsMonthly = Math.max(0, gainsAfterTeilfreistellung / 12 - taxFreeMonthly);
             const taxes = taxableGainsMonthly * (state.capitalGainsTax / 100);
 
             // Apply health insurance if applicable
@@ -998,10 +1065,24 @@
 
             const monthlyWithdrawal = (annualGains / 12) - taxes - healthInsuranceFee;
 
+            // Generate timeline showing constant wealth (capital preservation)
+            const years = state.lifeExpectancy - state.retirementAge;
+            const timeline = [];
+            for (let year = 0; year <= years; year++) {
+                timeline.push({
+                    year: year,
+                    wealth: startingWealth // Capital is preserved
+                });
+            }
+
+            // Generate success rate by year (always 100% since capital is preserved)
+            const successRateByYear = Array(years + 1).fill(100);
+
             return {
                 monthlyWithdrawal: Math.max(0, monthlyWithdrawal),
                 successRate: 100, // Always succeeds as capital is preserved
-                timeline: null // Will be calculated on demand
+                timeline: timeline,
+                successRateByYear: successRateByYear
             };
         }
 
@@ -1045,7 +1126,7 @@
             }
 
             // Use binary search to find withdrawal that achieves ~95% success rate
-            const optimalWithdrawal = findOptimalWithdrawal(
+            const { optimalWithdrawal, bestSimulation } = findOptimalWithdrawal(
                 startingWealth,
                 costBasis,
                 initialWithdrawal,
@@ -1053,14 +1134,22 @@
                 targetSuccessRate
             );
 
-            // Run final Monte Carlo simulation with optimal withdrawal
-            const simulation = runMonteCarloSimulation(
-                startingWealth,
-                costBasis,
-                optimalWithdrawal,
-                'dynamic',
-                state.desiredInheritance
-            );
+            // If we need higher accuracy, run final Monte Carlo simulation with full runs
+            // Otherwise, reuse the cached simulation from the binary search
+            let simulation;
+            if (state.monteCarloRuns > 100) {
+                // Run final simulation with full number of runs for better accuracy
+                simulation = runMonteCarloSimulation(
+                    startingWealth,
+                    costBasis,
+                    optimalWithdrawal,
+                    'dynamic',
+                    state.desiredInheritance
+                );
+            } else {
+                // Reuse cached simulation if user wants fewer runs
+                simulation = bestSimulation;
+            }
 
             return simulation;
         }
@@ -1070,27 +1159,40 @@
             let low = initialWithdrawal * 0.5; // Start at 50% of initial
             let high = initialWithdrawal * 1.2; // Up to 120% of initial
             let optimalWithdrawal = initialWithdrawal;
+            let bestSimulation = null;
             const tolerance = 2; // Within 2% of target success rate
             const maxIterations = 10;
+
+            // Cache simulation results to avoid redundant calculations
+            const simulationCache = new Map();
 
             for (let i = 0; i < maxIterations; i++) {
                 const testWithdrawal = (low + high) / 2;
 
-                // Run quick simulation with fewer runs for speed
-                const quickSimulation = runMonteCarloSimulation(
-                    startingWealth,
-                    costBasis,
-                    testWithdrawal,
-                    'dynamic',
-                    targetInheritance,
-                    Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
-                );
+                // Round to avoid floating point precision issues in cache
+                const cacheKey = Math.round(testWithdrawal * 100) / 100;
+
+                // Check cache first
+                let quickSimulation = simulationCache.get(cacheKey);
+                if (!quickSimulation) {
+                    // Run quick simulation with fewer runs for speed
+                    quickSimulation = runMonteCarloSimulation(
+                        startingWealth,
+                        costBasis,
+                        testWithdrawal,
+                        'dynamic',
+                        targetInheritance,
+                        Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
+                    );
+                    simulationCache.set(cacheKey, quickSimulation);
+                }
 
                 const successRate = quickSimulation.successRate;
 
                 if (Math.abs(successRate - targetSuccessRate) < tolerance) {
-                    // Close enough
+                    // Close enough - save this as best simulation
                     optimalWithdrawal = testWithdrawal;
+                    bestSimulation = quickSimulation;
                     break;
                 }
 
@@ -1103,9 +1205,10 @@
                 }
 
                 optimalWithdrawal = testWithdrawal;
+                bestSimulation = quickSimulation;
             }
 
-            return optimalWithdrawal;
+            return { optimalWithdrawal, bestSimulation };
         }
 
         function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance, customRuns = null) {
@@ -1247,9 +1350,14 @@
             const gainRatio = Math.max(0, (currentWealth - costBasis) / currentWealth);
             const gainPortion = desiredWithdrawal * gainRatio;
 
-            // Apply tax-free amount
+            // Apply Teilfreistellung (partial tax exemption for equity ETFs)
+            // For example: 30% exemption means only 70% of gains are taxable
+            const teilfreistellungFactor = (100 - state.teilfreistellung) / 100;
+            const gainAfterTeilfreistellung = gainPortion * teilfreistellungFactor;
+
+            // Apply tax-free amount (Sparerpauschbetrag)
             const taxFreeAnnual = state.taxFreeAmount;
-            const taxableGain = Math.max(0, gainPortion - taxFreeAnnual);
+            const taxableGain = Math.max(0, gainAfterTeilfreistellung - taxFreeAnnual);
 
             // Calculate taxes
             const capitalGainsTax = taxableGain * (state.capitalGainsTax / 100);
@@ -1285,9 +1393,9 @@
 
         function getExpectedReturn() {
             // Calculate expected return based on asset allocation
-            // Historical averages (real, after inflation):
-            const returnSafe = 0.025; // 2.5% for bonds/cash
-            const returnRisky = 0.075; // 7.5% for stocks (MSCI World historical)
+            // Use configurable returns from expert settings
+            const returnSafe = state.expectedReturnSafe / 100; // Convert from percentage
+            const returnRisky = state.expectedReturnRisky / 100; // Convert from percentage
 
             const allocationPercent = state.assetAllocation / 100;
             return (returnSafe + (allocationPercent * (returnRisky - returnSafe))) * 100; // Return as percentage
