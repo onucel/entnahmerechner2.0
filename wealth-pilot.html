@@ -208,6 +208,24 @@
             </div>
         </section>
 
+        <!-- Fixed Withdrawal Rate Setting (for Strategy 2) -->
+        <section class="mb-6">
+            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Fixe Entnahmerate (für Strategie 2): <span id="fixedWithdrawalRateLabel" class="text-amber-600 font-bold">4.0%</span>
+                </label>
+                <input type="range" id="fixedWithdrawalRate" value="4.0" min="2.0" max="10.0" step="0.1"
+                       class="w-full mt-2">
+                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>Konservativ (2%)</span>
+                    <span>Aggressiv (10%)</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-2">
+                    Bestimmt den Prozentsatz Ihres Startvermögens, den Sie jährlich entnehmen (z.B. 4% = klassische Trinity-Studie).
+                </p>
+            </div>
+        </section>
+
         <!-- Section B: Strategy Deck - Entnahmephase -->
         <section id="sectionB" class="mb-8">
             <h2 class="text-2xl font-bold text-slate-900 mb-6">Entnahmestrategie: Wählen Sie Ihren Weg</h2>
@@ -240,17 +258,17 @@
                     </div>
                 </div>
 
-                <!-- Card 2: 4% Rule -->
+                <!-- Card 2: Fixed Withdrawal Rate -->
                 <div id="card2" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-slate-900">Die 4%-Regel</h3>
+                        <h3 class="text-xl font-bold text-slate-900">Fixe Entnahmerate</h3>
                         <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
                             Standard
                         </span>
                     </div>
 
                     <p class="text-sm text-slate-600 mb-6">
-                        Feste 4% Entnahme vom Startwert, inflationsangepasst. Wissenschaftlich erprobt.
+                        Feste prozentuale Entnahme vom Startvermögen (einstellbar). Wissenschaftlich erprobt (Trinity-Studie).
                     </p>
 
                     <div class="bg-slate-50 rounded-lg p-4 mb-4">
@@ -262,7 +280,7 @@
                         <svg class="w-5 h-5 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
-                        <span id="card2Success">Sicherheit: -</span>
+                        <span id="card2Success">Pleitewahrscheinlichkeit: -</span>
                     </div>
                 </div>
 
@@ -506,6 +524,7 @@
             // Section C: Expert Settings
             inflationRate: 2.0,
             assetAllocation: 70, // % stocks
+            fixedWithdrawalRate: 4.0, // % for Strategy 2 (Fixed Withdrawal)
             desiredInheritance: 0,
             withdrawalCap: 0, // Maximum monthly withdrawal (0 = unlimited)
             lifeExpectancy: 95,
@@ -543,6 +562,7 @@
             updateInflationToggleUI();
             updateHealthInsuranceInfo();
             updateAssetAllocationLabel(); // Initialize asset allocation display
+            updateFixedWithdrawalRateLabel(); // Initialize fixed withdrawal rate display
             calculate();
         });
 
@@ -566,6 +586,7 @@
 
                     document.getElementById('inflationRate').value = state.inflationRate;
                     document.getElementById('assetAllocation').value = state.assetAllocation;
+                    document.getElementById('fixedWithdrawalRate').value = state.fixedWithdrawalRate;
                     document.getElementById('desiredInheritance').value = state.desiredInheritance;
                     document.getElementById('withdrawalCap').value = state.withdrawalCap;
                     document.getElementById('lifeExpectancy').value = state.lifeExpectancy;
@@ -633,6 +654,12 @@
             document.getElementById('assetAllocation').addEventListener('input', (e) => {
                 state.assetAllocation = parseFloat(e.target.value);
                 updateAssetAllocationLabel();
+                calculate();
+            });
+
+            document.getElementById('fixedWithdrawalRate').addEventListener('input', (e) => {
+                state.fixedWithdrawalRate = parseFloat(e.target.value);
+                updateFixedWithdrawalRateLabel();
                 calculate();
             });
 
@@ -749,6 +776,11 @@
             const volatility = calculateVolatility(allocation);
             document.getElementById('volatilityLabel').textContent =
                 `${(volatility * 100).toFixed(1)}%`;
+        }
+
+        function updateFixedWithdrawalRateLabel() {
+            document.getElementById('fixedWithdrawalRateLabel').textContent =
+                `${state.fixedWithdrawalRate.toFixed(1)}%`;
         }
 
         function updateHealthInsuranceInfo() {
@@ -1142,7 +1174,7 @@
             updateCard1(strategy1);
 
             // Strategy 2: 4% Rule
-            const strategy2 = calculate4PercentRule(startingWealth, costBasis);
+            const strategy2 = calculateFixedRate(startingWealth, costBasis);
             updateCard2(strategy2);
 
             // Strategy 3: Capital Depletion
@@ -1234,9 +1266,10 @@
             };
         }
 
-        function calculate4PercentRule(startingWealth, costBasis) {
-            // Fixed 4% withdrawal, inflation adjusted
-            const annualWithdrawal = startingWealth * 0.04;
+        function calculateFixedRate(startingWealth, costBasis) {
+            // Fixed percentage withdrawal based on user-selected rate
+            const withdrawalRate = state.fixedWithdrawalRate / 100;
+            const annualWithdrawal = startingWealth * withdrawalRate;
 
             // Run Monte Carlo simulation
             const simulation = runMonteCarloSimulation(
@@ -1627,8 +1660,20 @@
         function updateCard2(result) {
             document.getElementById('card2Amount').textContent =
                 formatCurrency(result.monthlyWithdrawal);
-            document.getElementById('card2Success').textContent =
-                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+
+            // Calculate and display failure rate instead of success rate
+            const failureRate = 100 - result.successRate;
+            const card2SuccessElement = document.getElementById('card2Success');
+            card2SuccessElement.textContent = `Pleitewahrscheinlichkeit: ${failureRate.toFixed(0)}%`;
+
+            // Color coding: Green <5%, Yellow <15%, Red >=15%
+            if (failureRate < 5) {
+                card2SuccessElement.style.color = '#059669'; // Green
+            } else if (failureRate < 15) {
+                card2SuccessElement.style.color = '#D97706'; // Yellow/Amber
+            } else {
+                card2SuccessElement.style.color = '#DC2626'; // Red
+            }
         }
 
         function updateCard3(result) {
@@ -1671,8 +1716,8 @@
                 label = 'Ewige Rente';
                 color = '#059669';
             } else if (state.selectedStrategy === 2) {
-                simulationResult = calculate4PercentRule(startingWealth, costBasis);
-                label = '4%-Regel';
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
+                label = 'Fixe Entnahmerate';
                 color = '#D97706';
             } else if (state.selectedStrategy === 3) {
                 simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
@@ -1804,7 +1849,7 @@
             if (state.selectedStrategy === 1) {
                 simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
             } else if (state.selectedStrategy === 2) {
-                simulationResult = calculate4PercentRule(startingWealth, costBasis);
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
             } else if (state.selectedStrategy === 3) {
                 simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
             }
@@ -1842,7 +1887,7 @@
                 simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
                 strategyColor = '#059669';
             } else if (state.selectedStrategy === 2) {
-                simulationResult = calculate4PercentRule(startingWealth, costBasis);
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
                 strategyColor = '#D97706';
             } else if (state.selectedStrategy === 3) {
                 simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
@@ -1857,25 +1902,25 @@
             const labels = incomePercentiles.p50.map(d => d.age);
             const datasets = [];
 
-            // 5th percentile (worst case) - dashed red line
+            // 5th percentile (worst case) - subtle dashed line
             datasets.push({
                 label: '5. Perzentil (Worst Case)',
                 data: incomePercentiles.p5.map(d => d.monthlyWithdrawal),
-                borderColor: 'rgba(239, 68, 68, 0.6)',
+                borderColor: 'rgba(148, 163, 184, 0.4)', // Subtle gray
                 backgroundColor: 'transparent',
                 borderWidth: 1,
-                borderDash: [3, 3],
+                borderDash: [5, 5],
                 fill: false,
                 pointRadius: 0,
                 tension: 0.4
             });
 
-            // 25th-75th percentile band (shaded area)
+            // 25th-75th percentile band (light shaded area)
             datasets.push({
                 label: '25. Perzentil',
                 data: incomePercentiles.p25.map(d => d.monthlyWithdrawal),
-                borderColor: `${strategyColor}60`,
-                backgroundColor: `${strategyColor}20`,
+                borderColor: 'rgba(148, 163, 184, 0.3)',
+                backgroundColor: 'rgba(148, 163, 184, 0.1)',
                 borderWidth: 1,
                 fill: '+1',  // Fill to next dataset (p75)
                 pointRadius: 0,
@@ -1885,7 +1930,7 @@
             datasets.push({
                 label: '75. Perzentil',
                 data: incomePercentiles.p75.map(d => d.monthlyWithdrawal),
-                borderColor: `${strategyColor}60`,
+                borderColor: 'rgba(148, 163, 184, 0.3)',
                 backgroundColor: 'transparent',
                 borderWidth: 1,
                 fill: false,
@@ -1893,28 +1938,48 @@
                 tension: 0.4
             });
 
-            // Median (50th percentile) - emphasized
-            datasets.push({
-                label: 'Median (Erwartet)',
-                data: incomePercentiles.p50.map(d => d.monthlyWithdrawal),
-                borderColor: strategyColor,
-                backgroundColor: `${strategyColor}10`,
-                borderWidth: 3,
-                fill: false,
-                pointRadius: 0,
-                tension: 0.4
-            });
-
-            // 95th percentile (best case) - dashed green line
+            // 95th percentile (best case) - subtle dashed line
             datasets.push({
                 label: '95. Perzentil (Best Case)',
                 data: incomePercentiles.p95.map(d => d.monthlyWithdrawal),
-                borderColor: 'rgba(34, 197, 94, 0.6)',
+                borderColor: 'rgba(148, 163, 184, 0.4)', // Subtle gray
                 backgroundColor: 'transparent',
                 borderWidth: 1,
-                borderDash: [3, 3],
+                borderDash: [5, 5],
                 fill: false,
                 pointRadius: 0,
+                tension: 0.4
+            });
+
+            // Calculate average of median values for the red horizontal line
+            const medianData = incomePercentiles.p50.map(d => d.monthlyWithdrawal);
+            const averageMedian = medianData.reduce((a, b) => a + b, 0) / medianData.length;
+
+            // Average line (red horizontal line)
+            datasets.push({
+                label: 'Durchschnitt',
+                data: Array(labels.length).fill(averageMedian),
+                borderColor: '#ef4444', // Red
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                tension: 0
+            });
+
+            // Median (50th percentile) - blue line with points (emphasized, on top)
+            datasets.push({
+                label: 'Median-Entnahme',
+                data: medianData,
+                borderColor: '#3b82f6', // Blue
+                backgroundColor: '#ffffff',
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#3b82f6',
+                pointBorderWidth: 2,
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 4,
+                pointHoverRadius: 6,
                 tension: 0.4
             });
 
@@ -1968,7 +2033,7 @@
             if (state.selectedStrategy === 1) {
                 doc.text('Gewählte Strategie: Ewige Rente (Kapitalerhalt)', 20, 117);
             } else if (state.selectedStrategy === 2) {
-                doc.text('Gewählte Strategie: 4%-Regel', 20, 117);
+                doc.text('Gewählte Strategie: Fixe Entnahmerate', 20, 117);
             } else if (state.selectedStrategy === 3) {
                 doc.text('Gewählte Strategie: Kapitalverzehr', 20, 117);
             } else {
