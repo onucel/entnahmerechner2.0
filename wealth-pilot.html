@@ -1380,8 +1380,8 @@
 
                     timeline.push({ year: year, wealth: wealth });
 
-                    // Track success at this year (still has wealth > target)
-                    if (wealth >= targetInheritance) {
+                    // Track success at this year (still has wealth >= target, with 1 Euro tolerance)
+                    if (wealth >= targetInheritance - 1) {
                         successByYear[year]++;
                     }
 
@@ -1399,26 +1399,27 @@
             }
 
             // Calculate statistics
-            const successCount = outcomes.filter(o => o.success).length;
+            // Use tolerance of 1 Euro to handle floating point rounding errors
+            const successCount = outcomes.filter(o => o.finalWealth >= targetInheritance - 1).length;
             const successRate = (successCount / runs) * 100;
 
             const finalWealths = outcomes.map(o => o.finalWealth);
             const avgFinalWealth = finalWealths.reduce((a, b) => a + b, 0) / finalWealths.length;
 
-            // Calculate withdrawal statistics
-            const monthlyWithdrawals = [];
-            for (let run = 0; run < Math.min(100, runs); run++) {
-                const timeline = allTimelines[run];
-                for (let i = 1; i < timeline.length; i++) {
-                    const yearlyWithdrawal = timeline[i - 1].wealth - timeline[i].wealth +
-                        (timeline[i].wealth * (expectedReturn));
-                    monthlyWithdrawals.push(yearlyWithdrawal / 12);
-                }
+            // Calculate withdrawal statistics directly from tracked withdrawals
+            // Flatten the array of arrays to get all monthly withdrawal data points
+            const allMonthlyDataPoints = [];
+
+            // Collect all data points from all runs (or a sample if too large)
+            const runsToSample = Math.min(100, runs);
+            for (let run = 0; run < runsToSample; run++) {
+                const runWithdrawals = allWithdrawals[run].map(w => w.monthlyWithdrawal);
+                allMonthlyDataPoints.push(...runWithdrawals);
             }
 
-            const avgMonthlyWithdrawal = monthlyWithdrawals.reduce((a, b) => a + b, 0) / monthlyWithdrawals.length;
-            const minMonthlyWithdrawal = Math.min(...monthlyWithdrawals);
-            const maxMonthlyWithdrawal = Math.max(...monthlyWithdrawals);
+            const avgMonthlyWithdrawal = allMonthlyDataPoints.reduce((a, b) => a + b, 0) / allMonthlyDataPoints.length;
+            const minMonthlyWithdrawal = Math.min(...allMonthlyDataPoints);
+            const maxMonthlyWithdrawal = Math.max(...allMonthlyDataPoints);
 
             // Calculate median timeline for display
             const medianTimeline = calculateMedianTimeline(allTimelines);
