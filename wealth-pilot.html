@@ -1315,9 +1315,11 @@
                     // Calculate gains for the year
                     const wealthBeforeWithdrawal = wealth * (1 + annualReturn);
 
-                    // Adjust withdrawal for inflation
+                    // Adjust withdrawal based on mode
                     if (mode === 'fixed') {
-                        currentAnnualWithdrawal = annualWithdrawal * Math.pow(1 + inflationRate, year);
+                        // In a real-return simulation, the purchasing power withdrawal stays constant
+                        // No inflation adjustment needed - we're already working with real returns
+                        currentAnnualWithdrawal = annualWithdrawal;
                     } else if (mode === 'dynamic') {
                         // Recalculate based on remaining wealth and years
                         const remainingYears = years - year + 1;
@@ -1337,11 +1339,12 @@
                                 currentAnnualWithdrawal = Math.max(0, (wealthBeforeWithdrawal - targetInheritance * fvFactor) / pvFactor);
                             }
 
-                            // Apply withdrawal cap if set (in nominal terms, adjusted for inflation)
+                            // Apply withdrawal cap if set (in real terms - purchasing power)
                             if (state.withdrawalCap > 0) {
-                                // Cap is in today's purchasing power, so adjust for inflation
-                                const inflationAdjustedCap = (state.withdrawalCap * 12) * Math.pow(1 + inflationRate, year);
-                                currentAnnualWithdrawal = Math.min(currentAnnualWithdrawal, inflationAdjustedCap);
+                                // Cap is in today's purchasing power, wealth is also in real terms
+                                // No inflation adjustment needed in real-return simulation
+                                const annualCap = state.withdrawalCap * 12;
+                                currentAnnualWithdrawal = Math.min(currentAnnualWithdrawal, annualCap);
                             }
 
                             // Safety check: never withdraw more than available minus target inheritance
