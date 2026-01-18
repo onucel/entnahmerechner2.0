@@ -400,7 +400,9 @@
             <!-- Comparison Income Chart -->
             <div class="mt-8">
                 <h3 class="text-lg font-semibold text-slate-900 mb-2">Einkommensvergleich über Zeit</h3>
-                <p class="text-sm text-slate-500 mb-4">Median der monatlichen Entnahme pro Strategie (inflationsbereinigt)</p>
+                <p class="text-sm text-slate-500 mb-4">
+                    Median der monatlichen Netto-Entnahme. <span id="inflationNote" class="text-blue-600 font-medium"></span>
+                </p>
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-100" style="height: 350px;">
                     <canvas id="comparisonIncomeChart"></canvas>
                 </div>
@@ -955,6 +957,14 @@
                 toggle.nextElementSibling.classList.remove('bg-blue-600');
                 toggle.nextElementSibling.classList.add('bg-slate-300');
                 dot.style.transform = 'translateX(0)';
+            }
+
+            // Hinweis für Inflation aktualisieren
+            const noteEl = document.getElementById('inflationNote');
+            if (noteEl) {
+                noteEl.textContent = toggle.checked
+                    ? "(In heutiger Kaufkraft)"
+                    : "(Nominale Euro-Werte der Zukunft)";
             }
         }
 
@@ -1946,45 +1956,59 @@
         // ============================================
 
         function updateCard1(result) {
-            // Display monthly withdrawal (annualWithdrawal / 12)
-            const monthly = result.annualWithdrawal / 12;
+            // Jahre bis zur Rente ermitteln für Inflationsbereinigung
+            const yearsToRetirement = state.retirementAge - state.currentAge;
+            const inflationFactor = getInflationFactor(yearsToRetirement);
+
+            // Monatliche Rente (Start) durch Inflation teilen
+            const monthly = (result.annualWithdrawal / 12) / inflationFactor;
+
             document.getElementById('card1Amount').textContent = formatCurrency(monthly);
             document.getElementById('card1Success').textContent = `${result.successRate.toFixed(0)}%`;
         }
 
         function updateCard2(result) {
-            // Display monthly withdrawal (annualWithdrawal / 12)
-            const monthly = result.annualWithdrawal / 12;
+            const yearsToRetirement = state.retirementAge - state.currentAge;
+            const inflationFactor = getInflationFactor(yearsToRetirement);
+
+            const monthly = (result.annualWithdrawal / 12) / inflationFactor;
+
             document.getElementById('card2Amount').textContent = formatCurrency(monthly);
 
-            // Calculate and display failure rate
+            // Failure rate logic remains the same
             const failureRate = 100 - result.successRate;
             const card2SuccessElement = document.getElementById('card2Success');
             card2SuccessElement.textContent = `${failureRate.toFixed(1)}%`;
 
             // Color coding: Green <5%, Yellow <15%, Red >=15%
             if (failureRate < 5) {
-                card2SuccessElement.style.color = '#059669'; // Green
+                card2SuccessElement.style.color = '#059669';
             } else if (failureRate < 15) {
-                card2SuccessElement.style.color = '#D97706'; // Yellow/Amber
+                card2SuccessElement.style.color = '#D97706';
             } else {
-                card2SuccessElement.style.color = '#DC2626'; // Red
+                card2SuccessElement.style.color = '#DC2626';
             }
         }
 
         function updateCard3(result) {
-            // Display monthly withdrawal (annualWithdrawal / 12)
-            const monthly = result.annualWithdrawal / 12;
+            const yearsToRetirement = state.retirementAge - state.currentAge;
+            const inflationFactor = getInflationFactor(yearsToRetirement);
+
+            // Alle Werte durch Inflation teilen
+            const monthly = (result.annualWithdrawal / 12) / inflationFactor;
+            const minMonthly = result.minMonthly / inflationFactor;
+            const maxMonthly = result.maxMonthly / inflationFactor;
+
             document.getElementById('card3Amount').textContent = formatCurrency(monthly);
             document.getElementById('card3Range').textContent =
-                `${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
+                `${formatCurrency(minMonthly)} - ${formatCurrency(maxMonthly)}`;
 
-            // Show minimum withdrawal (5th percentile)
             if (result.incomePercentiles && result.incomePercentiles.p5 && result.incomePercentiles.p5.length > 0) {
                 const minWithdrawal5thPercentile = Math.min(...result.incomePercentiles.p5.map(p => p.monthlyWithdrawal));
-                document.getElementById('card3Success').textContent = formatCurrency(minWithdrawal5thPercentile);
+                // Auch hier durch Inflation teilen
+                document.getElementById('card3Success').textContent = formatCurrency(minWithdrawal5thPercentile / inflationFactor);
             } else {
-                document.getElementById('card3Success').textContent = formatCurrency(result.minMonthly);
+                document.getElementById('card3Success').textContent = formatCurrency(minMonthly);
             }
         }
 
@@ -2285,16 +2309,18 @@
         // ============================================
 
         function updateComparisonTable(strategy1, strategy2, strategy3, startingWealth) {
-            // Start-Einkommen (monthly) - annualWithdrawal / 12
-            const income1 = strategy1.annualWithdrawal / 12;
-            const income2 = strategy2.annualWithdrawal / 12;
-            const income3 = strategy3.annualWithdrawal / 12;
+            const yearsToRetirement = state.retirementAge - state.currentAge;
+            const inflationFactor = getInflationFactor(yearsToRetirement);
+
+            // Einkommen auf heutige Kaufkraft umrechnen
+            const income1 = (strategy1.annualWithdrawal / 12) / inflationFactor;
+            const income2 = (strategy2.annualWithdrawal / 12) / inflationFactor;
+            const income3 = (strategy3.annualWithdrawal / 12) / inflationFactor;
 
             document.getElementById('compare1Income').textContent = formatCurrency(income1);
             document.getElementById('compare2Income').textContent = formatCurrency(income2);
             document.getElementById('compare3Income').textContent = formatCurrency(income3);
 
-            // Apply negative value styling if needed
             applyNegativeStyle('compare1Income', income1);
             applyNegativeStyle('compare2Income', income2);
             applyNegativeStyle('compare3Income', income3);
@@ -2304,7 +2330,6 @@
             const failure2El = document.getElementById('compare2Failure');
             failure2El.textContent = failure2.toFixed(1) + '%';
 
-            // Color coding for failure rate
             if (failure2 < 5) {
                 failure2El.className = 'text-lg font-semibold text-emerald-600';
             } else if (failure2 < 15) {
@@ -2313,10 +2338,15 @@
                 failure2El.className = 'text-lg font-semibold text-red-600';
             }
 
-            // Erbe-Potenzial (Median final wealth)
-            const inheritance1 = startingWealth; // Capital preserved
-            const inheritance2 = strategy2.medianFinalWealth || strategy2.avgFinalWealth;
-            const inheritance3 = strategy3.medianFinalWealth || state.desiredInheritance;
+            // Erbe ebenfalls inflationsbereinigen (denn 1 Mio Erbe in 50 Jahren ist weniger wert)
+            // Das Erbe fällt am LEBENSENDE an, also Zeitspanne = Lebenserwartung - aktuelles Alter
+            const yearsToDeath = state.lifeExpectancy - state.currentAge;
+            const inflationFactorDeath = getInflationFactor(yearsToDeath);
+
+            // Das Startvermögen (strategy 1) ist nominell erhalten, aber real weniger wert!
+            const inheritance1 = startingWealth / inflationFactorDeath;
+            const inheritance2 = (strategy2.medianFinalWealth || strategy2.avgFinalWealth) / inflationFactorDeath;
+            const inheritance3 = (strategy3.medianFinalWealth || state.desiredInheritance) / inflationFactorDeath;
 
             document.getElementById('compare1Inheritance').textContent = formatCurrency(inheritance1);
             document.getElementById('compare2Inheritance').textContent = formatCurrency(inheritance2);
@@ -2341,17 +2371,28 @@
         function updateComparisonIncomeChart(strategy1, strategy2, strategy3) {
             if (!comparisonIncomeChart) return;
 
-            // Get income percentiles for all three strategies
             const years = state.lifeExpectancy - state.retirementAge;
             const labels = Array.from({ length: years + 1 }, (_, i) => state.retirementAge + i);
 
             const datasets = [];
 
+            // Helper um Array von Werten zu bereinigen
+            const adjustArray = (dataArray) => {
+                if (!state.inflationToggle) return dataArray;
+                return dataArray.map((val, index) => {
+                    // Index 0 ist Rentenbeginn.
+                    // Zeit von heute bis zu diesem Punkt im Chart = (Rentenalter - Heute) + index
+                    const totalYears = (state.retirementAge - state.currentAge) + index;
+                    return val / Math.pow(1 + state.inflationRate / 100, totalYears);
+                });
+            };
+
             // Strategy 1: Ewige Rente (constant income - green)
             if (strategy1.incomePercentiles && strategy1.incomePercentiles.p50) {
+                const rawData = strategy1.incomePercentiles.p50.map(d => d.monthlyWithdrawal);
                 datasets.push({
                     label: 'Ewige Rente',
-                    data: strategy1.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    data: adjustArray(rawData),
                     borderColor: '#059669',
                     backgroundColor: 'rgba(5, 150, 105, 0.1)',
                     borderWidth: 2.5,
@@ -2363,9 +2404,10 @@
 
             // Strategy 2: Fixe Rate (constant in real terms - amber)
             if (strategy2.incomePercentiles && strategy2.incomePercentiles.p50) {
+                const rawData = strategy2.incomePercentiles.p50.map(d => d.monthlyWithdrawal);
                 datasets.push({
                     label: 'Fixe Rate (' + state.fixedWithdrawalRate.toFixed(1) + '%)',
-                    data: strategy2.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    data: adjustArray(rawData),
                     borderColor: '#d97706',
                     backgroundColor: 'rgba(217, 119, 6, 0.1)',
                     borderWidth: 2.5,
@@ -2377,9 +2419,10 @@
 
             // Strategy 3: Kapitalverzehr (dynamic - rose)
             if (strategy3.incomePercentiles && strategy3.incomePercentiles.p50) {
+                const rawData = strategy3.incomePercentiles.p50.map(d => d.monthlyWithdrawal);
                 datasets.push({
                     label: 'Kapitalverzehr',
-                    data: strategy3.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    data: adjustArray(rawData),
                     borderColor: '#e11d48',
                     backgroundColor: 'rgba(225, 29, 72, 0.1)',
                     borderWidth: 2.5,
@@ -2476,6 +2519,12 @@
         // ============================================
         // UTILITY FUNCTIONS
         // ============================================
+
+        function getInflationFactor(yearsFromNow) {
+            if (!state.inflationToggle) return 1.0;
+            // Berechnet den Faktor: (1 + Inflationsrate) hoch Jahre
+            return Math.pow(1 + state.inflationRate / 100, yearsFromNow);
+        }
 
         function formatCurrency(value) {
             return new Intl.NumberFormat('de-DE', {
