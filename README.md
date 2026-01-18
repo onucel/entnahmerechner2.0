@@ -73,6 +73,33 @@ Drei wissenschaftlich fundierte Strategien mit jeweils eigener Monte-Carlo-Simul
 - Erwartete Rendite Aktien: 7,5% p.a. (konfigurierbar)
 - Erlaubt individuelle Anpassung der Renditeerwartungen basierend auf persönlichen Markteinschätzungen
 
+#### Section D: Visualisierungen & Charts (Neu!)
+
+**Entnahme-Verteilung (Kapitalverzehr-Strategie)**
+- **Ersetzt** die irreführende Erfolgswahrscheinlichkeit für Kapitalverzehr
+- Zeigt die **Bandbreite möglicher Entnahmen** über die Zeit
+- Perzentilbänder:
+  - 5. Perzentil: Worst-Case-Szenario (nur 5% der Simulationen schlechter)
+  - 25.-75. Perzentil: Mittlere 50% der Ergebnisse (schattierte Fläche)
+  - Median (50.): Erwartete typische Entnahme (hervorgehoben)
+  - 95. Perzentil: Best-Case-Szenario (nur 5% der Simulationen besser)
+- **Praktischer Nutzen**: "Ihr erwartetes Einkommen ist €2.500/Monat (Median), aber in einem schlechten Marktszenario (5. Perzentil) könnte es auf €1.200/Monat sinken"
+- Hilft bei der Planung für Worst-Case-Szenarien
+
+**Vermögensverlauf mit Unsicherheitsbändern (Alle Strategien)**
+- Erweiterte Darstellung der Vermögensentwicklung während der Entnahmephase
+- Zeigt **Perzentilbänder** für mögliche Vermögenstrajektorien:
+  - 5. Perzentil: Worst-Case-Vermögen (gestrichelte rote Linie)
+  - 25.-75. Perzentil: Mittlere 50% der Vermögensentwicklungen (schattierte Fläche)
+  - Median: Typische Vermögensentwicklung (hervorgehoben, immer sichtbar)
+  - 95. Perzentil: Best-Case-Vermögen (gestrichelte grüne Linie)
+- **Toggle-Kontrolle**: "Bänder anzeigen" Checkbox zum Ein-/Ausblenden der Perzentile
+- Visualisiert Unsicherheit und Marktrisiko
+
+**Erfolgswahrscheinlichkeit über Zeit (Ewige Rente & 4%-Regel)**
+- Zeigt den Prozentsatz der Simulationen, die das Vererbungsziel erreichen
+- Bleibt erhalten für Strategien 1 & 2 (sinnvolle Metrik bei Kapitalerhalt)
+
 ## 🔬 Mathematische Grundlagen
 
 ### 1. Steuerstundung (Tax Deferral)
@@ -294,6 +321,19 @@ Mögliche Features für zukünftige Versionen:
 
 ## 📝 Changelog
 
+### Version 1.2 - Januar 2026
+**Neue Features:**
+- ✅ **Entnahme-Verteilungs-Chart**: Neue Visualisierung für Kapitalverzehr-Strategie zeigt Bandbreite möglicher monatlicher Entnahmen
+  - Ersetzt die irreführende Erfolgswahrscheinlichkeit für diese Strategie
+  - Zeigt 5., 25., 50. (Median), 75. und 95. Perzentil der Entnahmen über Zeit
+  - Gibt praktische Einblicke: "Erwartete €2.500/Monat, aber Worst-Case €1.200/Monat"
+- ✅ **Vermögens-Perzentilbänder**: Alle Strategien zeigen nun Unsicherheitsbänder im Vermögensverlauf-Chart
+  - Visualisiert die Bandbreite möglicher Vermögensentwicklungen (5., 25., 50., 75., 95. Perzentil)
+  - Toggle-Kontrolle zum Ein-/Ausblenden der Perzentilbänder
+  - Median-Linie immer sichtbar und hervorgehoben
+- ✅ **Strategie-spezifische Charts**: Kapitalverzehr zeigt Entnahme-Verteilung, andere Strategien zeigen Erfolgswahrscheinlichkeit
+- ✅ **Verbesserte Monte-Carlo-Datenstruktur**: Tracking von Entnahmen und Vermögen für alle Simulationsläufe
+
 ### Version 1.1 - Januar 2026
 **Neue Features:**
 - ✅ **Teilfreistellung implementiert**: 30% Steuerbefreiung für Aktien-ETFs (konfigurierbar)
@@ -336,4 +376,4 @@ Verbesserungsvorschläge und Bug-Reports sind willkommen!
 
 **Entwickelt mit 💙 für die deutsche FIRE- und ETF-Community**
 
-*Version 1.1 - Januar 2026*
+*Version 1.2 - Januar 2026*
