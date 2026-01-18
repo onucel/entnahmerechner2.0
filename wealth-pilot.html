@@ -287,9 +287,10 @@
 
                     <div class="flex items-center text-sm text-slate-600">
                         <svg class="w-5 h-5 mr-2 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M12 9a1 1 0 01-1 1H9v2a1 1 0 11-2 0v-2H5a1 1 0 110-2h2V6a1 1 0 112 0v2h2a1 1 0 011 1z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
                         </svg>
-                        <span id="card3Success">Sicherheit: -</span>
+                        <span id="card3Success">Min. Entnahme (5. Perz.): -</span>
                     </div>
                 </div>
             </div>
@@ -363,6 +364,14 @@
                             <input type="number" id="desiredInheritance" value="0" min="0" step="10000"
                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <p class="text-xs text-slate-500 mt-1">Betrag, der am Lebensende (95 Jahre) mindestens übrig bleiben soll</p>
+                        </div>
+
+                        <!-- Withdrawal Cap (for Strategy 3 only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Monatliche Entnahme-Obergrenze (Cap)</label>
+                            <input type="number" id="withdrawalCap" value="0" min="0" step="100"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1">Maximaler monatlicher Entnahmebetrag (0 = unbegrenzt). Überschüsse bleiben im Depot als Puffer.</p>
                         </div>
 
                         <!-- Life Expectancy -->
@@ -498,6 +507,7 @@
             inflationRate: 2.0,
             assetAllocation: 70, // % stocks
             desiredInheritance: 0,
+            withdrawalCap: 0, // Maximum monthly withdrawal (0 = unlimited)
             lifeExpectancy: 95,
             capitalGainsTax: 26.375,
             healthInsurance: 'kvdr',
@@ -557,6 +567,7 @@
                     document.getElementById('inflationRate').value = state.inflationRate;
                     document.getElementById('assetAllocation').value = state.assetAllocation;
                     document.getElementById('desiredInheritance').value = state.desiredInheritance;
+                    document.getElementById('withdrawalCap').value = state.withdrawalCap;
                     document.getElementById('lifeExpectancy').value = state.lifeExpectancy;
                     document.getElementById('capitalGainsTax').value = state.capitalGainsTax;
                     document.getElementById('healthInsurance').value = state.healthInsurance;
@@ -627,6 +638,11 @@
 
             document.getElementById('desiredInheritance').addEventListener('input', (e) => {
                 state.desiredInheritance = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('withdrawalCap').addEventListener('input', (e) => {
+                state.withdrawalCap = parseFloat(e.target.value);
                 calculate();
             });
 
@@ -1235,112 +1251,39 @@
         }
 
         function calculateCapitalDepletion(startingWealth, costBasis) {
-            // Dynamic withdrawal to deplete to inheritance amount
-            // Target: 95% success rate
+            // Dynamic withdrawal strategy - recalculates withdrawal each year based on remaining wealth
+            // No binary search needed - annuity is calculated dynamically in the simulation
             const yearsInRetirement = state.lifeExpectancy - state.retirementAge;
             const targetFinalValue = state.desiredInheritance;
-            const targetSuccessRate = 95; // 95% success rate
 
-            // Use annuity formula as starting point
+            // Calculate initial annual withdrawal using annuity formula (PMT)
+            // This is just the starting point; actual withdrawals will be recalculated each year
             const r = getExpectedReturn() / 100;
             const n = yearsInRetirement;
 
             // Initial PMT calculation with FV target
             let initialWithdrawal;
             if (targetFinalValue === 0) {
-                // Standard annuity
+                // Standard annuity: deplete to zero
                 initialWithdrawal = startingWealth * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
             } else {
-                // Adjusted for inheritance
+                // Adjusted for inheritance target
                 const pvFactor = (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
                 const fvFactor = 1 / Math.pow(1 + r, n);
                 initialWithdrawal = (startingWealth - targetFinalValue * fvFactor) / pvFactor;
             }
 
-            // Use binary search to find withdrawal that achieves ~95% success rate
-            const { optimalWithdrawal, bestSimulation } = findOptimalWithdrawal(
+            // Run Monte Carlo simulation with dynamic mode
+            // The simulation will recalculate withdrawals each year based on remaining wealth
+            const simulation = runMonteCarloSimulation(
                 startingWealth,
                 costBasis,
                 initialWithdrawal,
-                targetFinalValue,
-                targetSuccessRate
+                'dynamic',
+                state.desiredInheritance
             );
 
-            // If we need higher accuracy, run final Monte Carlo simulation with full runs
-            // Otherwise, reuse the cached simulation from the binary search
-            let simulation;
-            if (state.monteCarloRuns > 100) {
-                // Run final simulation with full number of runs for better accuracy
-                simulation = runMonteCarloSimulation(
-                    startingWealth,
-                    costBasis,
-                    optimalWithdrawal,
-                    'dynamic',
-                    state.desiredInheritance
-                );
-            } else {
-                // Reuse cached simulation if user wants fewer runs
-                simulation = bestSimulation;
-            }
-
             return simulation;
-        }
-
-        function findOptimalWithdrawal(startingWealth, costBasis, initialWithdrawal, targetInheritance, targetSuccessRate) {
-            // Binary search to find withdrawal that achieves target success rate
-            let low = initialWithdrawal * 0.5; // Start at 50% of initial
-            let high = initialWithdrawal * 1.2; // Up to 120% of initial
-            let optimalWithdrawal = initialWithdrawal;
-            let bestSimulation = null;
-            const tolerance = 2; // Within 2% of target success rate
-            const maxIterations = 10;
-
-            // Cache simulation results to avoid redundant calculations
-            const simulationCache = new Map();
-
-            for (let i = 0; i < maxIterations; i++) {
-                const testWithdrawal = (low + high) / 2;
-
-                // Round to avoid floating point precision issues in cache
-                const cacheKey = Math.round(testWithdrawal * 100) / 100;
-
-                // Check cache first
-                let quickSimulation = simulationCache.get(cacheKey);
-                if (!quickSimulation) {
-                    // Run quick simulation with fewer runs for speed
-                    quickSimulation = runMonteCarloSimulation(
-                        startingWealth,
-                        costBasis,
-                        testWithdrawal,
-                        'dynamic',
-                        targetInheritance,
-                        Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
-                    );
-                    simulationCache.set(cacheKey, quickSimulation);
-                }
-
-                const successRate = quickSimulation.successRate;
-
-                if (Math.abs(successRate - targetSuccessRate) < tolerance) {
-                    // Close enough - save this as best simulation
-                    optimalWithdrawal = testWithdrawal;
-                    bestSimulation = quickSimulation;
-                    break;
-                }
-
-                if (successRate < targetSuccessRate) {
-                    // Success rate too low, reduce withdrawal
-                    high = testWithdrawal;
-                } else {
-                    // Success rate too high, can increase withdrawal
-                    low = testWithdrawal;
-                }
-
-                optimalWithdrawal = testWithdrawal;
-                bestSimulation = quickSimulation;
-            }
-
-            return { optimalWithdrawal, bestSimulation };
         }
 
         function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance, customRuns = null) {
@@ -1384,6 +1327,7 @@
                             currentAnnualWithdrawal = Math.max(0, wealthBeforeWithdrawal - targetInheritance);
                         } else {
                             // Use wealth after return for more accurate calculation
+                            // Use expected return (not the random return) for stable planning
                             const r = expectedReturn;
                             if (targetInheritance === 0) {
                                 currentAnnualWithdrawal = wealthBeforeWithdrawal * (r * Math.pow(1 + r, remainingYears)) / (Math.pow(1 + r, remainingYears) - 1);
@@ -1391,6 +1335,13 @@
                                 const pvFactor = (Math.pow(1 + r, remainingYears) - 1) / (r * Math.pow(1 + r, remainingYears));
                                 const fvFactor = 1 / Math.pow(1 + r, remainingYears);
                                 currentAnnualWithdrawal = Math.max(0, (wealthBeforeWithdrawal - targetInheritance * fvFactor) / pvFactor);
+                            }
+
+                            // Apply withdrawal cap if set (in nominal terms, adjusted for inflation)
+                            if (state.withdrawalCap > 0) {
+                                // Cap is in today's purchasing power, so adjust for inflation
+                                const inflationAdjustedCap = (state.withdrawalCap * 12) * Math.pow(1 + inflationRate, year);
+                                currentAnnualWithdrawal = Math.min(currentAnnualWithdrawal, inflationAdjustedCap);
                             }
 
                             // Safety check: never withdraw more than available minus target inheritance
@@ -1681,8 +1632,19 @@
                 formatCurrency(result.monthlyWithdrawal);
             document.getElementById('card3Range').textContent =
                 `Schwankung: ${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
-            document.getElementById('card3Success').textContent =
-                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+
+            // Show minimum withdrawal (5th percentile) instead of success rate
+            // This is more meaningful for dynamic withdrawal strategy
+            if (result.incomePercentiles && result.incomePercentiles.p5 && result.incomePercentiles.p5.length > 0) {
+                // Find the minimum value across all years in the 5th percentile
+                const minWithdrawal5thPercentile = Math.min(...result.incomePercentiles.p5.map(p => p.monthlyWithdrawal));
+                document.getElementById('card3Success').textContent =
+                    `Min. Entnahme (5. Perz.): ${formatCurrency(minWithdrawal5thPercentile)}`;
+            } else {
+                // Fallback to old behavior if percentiles not available
+                document.getElementById('card3Success').textContent =
+                    `Min. Entnahme: ${formatCurrency(result.minMonthly)}`;
+            }
         }
 
         // ============================================
