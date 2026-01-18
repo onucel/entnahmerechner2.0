@@ -28,7 +28,7 @@
         .card-selected {
             ring: 2px;
             ring-color: #2563EB;
-            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.15);
         }
 
         /* Custom slider styling */
@@ -70,6 +70,42 @@
             border: 3px solid white;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
+
+        /* Clean Fintech Look */
+        .comparison-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .comparison-table th:first-child,
+        .comparison-table td:first-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        /* Negative values in red */
+        .negative-value {
+            color: #dc2626 !important;
+        }
+
+        /* Strategy colors */
+        .strategy-1-color { color: #059669; }
+        .strategy-2-color { color: #d97706; }
+        .strategy-3-color { color: #e11d48; }
+        .strategy-1-bg { background-color: #ecfdf5; }
+        .strategy-2-bg { background-color: #fffbeb; }
+        .strategy-3-bg { background-color: #fff1f2; }
+
+        /* Compact card style */
+        .strategy-card-compact {
+            transition: all 0.2s ease;
+        }
+        .strategy-card-compact:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -93,10 +129,10 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         <!-- Section A: Hero - Ansparphase -->
-        <section id="sectionA" class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+        <section id="sectionA" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8 fade-in">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-bold text-slate-900">Ansparphase: Ihr Weg zur finanziellen Freiheit</h2>
-                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
                     Live-Berechnung
                 </span>
             </div>
@@ -208,9 +244,172 @@
             </div>
         </section>
 
+        <!-- Section: Strategy Comparison - Der Vergleich auf einen Blick -->
+        <section id="strategyComparison" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8 fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">Der Vergleich auf einen Blick</h2>
+                    <p class="text-sm text-slate-500 mt-1">Alle drei Strategien im direkten Vergleich</p>
+                </div>
+                <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+                    Entscheidungshilfe
+                </span>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="overflow-x-auto">
+                <table class="comparison-table w-full text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-slate-200">
+                            <th class="py-4 px-4 text-left font-semibold text-slate-600 bg-slate-50 rounded-tl-lg w-1/4">Kriterium</th>
+                            <th class="py-4 px-4 text-center font-semibold strategy-1-color strategy-1-bg w-1/4">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg">Ewige Rente</span>
+                                    <span class="text-xs font-normal text-slate-500">Kapitalerhalt</span>
+                                </div>
+                            </th>
+                            <th class="py-4 px-4 text-center font-semibold strategy-2-color strategy-2-bg w-1/4">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg">Fixe Rate</span>
+                                    <span class="text-xs font-normal text-slate-500">4%-Regel</span>
+                                </div>
+                            </th>
+                            <th class="py-4 px-4 text-center font-semibold strategy-3-color strategy-3-bg rounded-tr-lg w-1/4">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg">Kapitalverzehr</span>
+                                    <span class="text-xs font-normal text-slate-500">Dynamisch</span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-4 px-4 font-medium text-slate-700 bg-slate-50">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Start-Einkommen
+                                </div>
+                                <div class="text-xs text-slate-500 ml-6">(monatlich)</div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare1Income" class="text-xl font-bold strategy-1-color">-</span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare2Income" class="text-xl font-bold strategy-2-color">-</span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare3Income" class="text-xl font-bold strategy-3-color">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-medium text-slate-700 bg-slate-50">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                    </svg>
+                                    Einkommens-Entwicklung
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                    Niedrig & Schwankend
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                    Konstant (Kaufkraft stabil)
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
+                                    Schwankend (Marktabhängig)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-medium text-slate-700 bg-slate-50">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    Pleitewahrscheinlichkeit
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare1Failure" class="text-lg font-semibold text-emerald-600">0%</span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare2Failure" class="text-lg font-semibold">-</span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare3Failure" class="text-lg font-semibold text-emerald-600">~0%</span>
+                                <div class="text-xs text-slate-500">(adaptiv)</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 font-medium text-slate-700 bg-slate-50">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                    Erbe-Potenzial
+                                </div>
+                                <div class="text-xs text-slate-500 ml-6">(Median bei Lebensende)</div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare1Inheritance" class="text-lg font-semibold strategy-1-color">-</span>
+                                <div class="text-xs text-slate-500">100% erhalten</div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare2Inheritance" class="text-lg font-semibold strategy-2-color">-</span>
+                                <div class="text-xs text-slate-500">oft ungewollt hoch</div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span id="compare3Inheritance" class="text-lg font-semibold strategy-3-color">-</span>
+                                <div class="text-xs text-slate-500">gezielt steuerbar</div>
+                            </td>
+                        </tr>
+                        <tr class="border-t-2 border-slate-200">
+                            <td class="py-4 px-4 font-medium text-slate-700 bg-slate-50 rounded-bl-lg">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Fazit
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-center strategy-1-bg">
+                                <span class="text-sm font-medium strategy-1-color">Für Sicherheitsbewusste</span>
+                                <div class="text-xs text-slate-500 mt-1">Kapital bleibt, Rente ist niedriger</div>
+                            </td>
+                            <td class="py-4 px-4 text-center strategy-2-bg">
+                                <span class="text-sm font-medium strategy-2-color">Für Planungssicherheit</span>
+                                <div class="text-xs text-slate-500 mt-1">Einfach & wissenschaftlich fundiert</div>
+                            </td>
+                            <td class="py-4 px-4 text-center strategy-3-bg rounded-br-lg">
+                                <span class="text-sm font-medium strategy-3-color">Für Maximierer</span>
+                                <div class="text-xs text-slate-500 mt-1">Höchste Entnahme, mehr Flexibilität</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Comparison Income Chart -->
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Einkommensvergleich über Zeit</h3>
+                <p class="text-sm text-slate-500 mb-4">Median der monatlichen Entnahme pro Strategie (inflationsbereinigt)</p>
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-100" style="height: 350px;">
+                    <canvas id="comparisonIncomeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
         <!-- Fixed Withdrawal Rate Setting (for Strategy 2) -->
         <section class="mb-6">
-            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4">
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <label class="block text-sm font-medium text-slate-700 mb-2">
                     Fixe Entnahmerate (für Strategie 2): <span id="fixedWithdrawalRateLabel" class="text-amber-600 font-bold">4.0%</span>
                 </label>
@@ -226,154 +425,144 @@
             </div>
         </section>
 
-        <!-- Section B: Strategy Deck - Entnahmephase -->
+        <!-- Section B: Strategy Deck - Entnahmephase (Compact Detail-Panels) -->
         <section id="sectionB" class="mb-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-6">Entnahmestrategie: Wählen Sie Ihren Weg</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-slate-900">Strategie-Details</h2>
+                <span class="text-sm text-slate-500">Klicken für detaillierte Ansicht</span>
+            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-                <!-- Card 1: Eternal Annuity -->
-                <div id="card1" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-slate-900">Ewige Rente</h3>
-                        <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
+                <!-- Card 1: Eternal Annuity (Compact) -->
+                <div id="card1" class="strategy-card strategy-card-compact bg-white rounded-lg shadow-sm border border-slate-200 p-4 cursor-pointer hover:border-emerald-300 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
+                            <h3 class="text-base font-semibold text-slate-900">Ewige Rente</h3>
+                        </div>
+                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-xs font-medium rounded">
                             Kapitalerhalt
                         </span>
                     </div>
 
-                    <p class="text-sm text-slate-600 mb-6">
-                        Nur Gewinne entnehmen. Ihr Kapital bleibt erhalten und kann vererbt werden.
-                    </p>
-
-                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
-                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme</div>
-                        <div id="card1Amount" class="text-3xl font-bold text-emerald-600">-</div>
-                    </div>
-
-                    <div class="flex items-center text-sm text-slate-600">
-                        <svg class="w-5 h-5 mr-2 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        <span id="card1Success">Sicherheit: 100%</span>
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <div class="text-xs text-slate-500">Monatlich</div>
+                            <div id="card1Amount" class="text-2xl font-bold text-emerald-600">-</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">Sicherheit</div>
+                            <div id="card1Success" class="text-sm font-medium text-emerald-600">100%</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Card 2: Fixed Withdrawal Rate -->
-                <div id="card2" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-slate-900">Fixe Entnahmerate</h3>
-                        <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
-                            Standard
+                <!-- Card 2: Fixed Withdrawal Rate (Compact) -->
+                <div id="card2" class="strategy-card strategy-card-compact bg-white rounded-lg shadow-sm border border-slate-200 p-4 cursor-pointer hover:border-amber-300 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                            <h3 class="text-base font-semibold text-slate-900">Fixe Rate</h3>
+                        </div>
+                        <span class="px-2 py-0.5 bg-amber-50 text-amber-600 text-xs font-medium rounded">
+                            <span id="fixedRateDisplay">4.0%</span>-Regel
                         </span>
                     </div>
 
-                    <p class="text-sm text-slate-600 mb-6">
-                        Feste prozentuale Entnahme vom Startvermögen (einstellbar). Wissenschaftlich erprobt (Trinity-Studie).
-                    </p>
-
-                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
-                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme</div>
-                        <div id="card2Amount" class="text-3xl font-bold text-amber-600">-</div>
-                    </div>
-
-                    <div class="flex items-center text-sm text-slate-600">
-                        <svg class="w-5 h-5 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <span id="card2Success">Pleitewahrscheinlichkeit: -</span>
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <div class="text-xs text-slate-500">Monatlich</div>
+                            <div id="card2Amount" class="text-2xl font-bold text-amber-600">-</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">Pleiterisiko</div>
+                            <div id="card2Success" class="text-sm font-medium">-</div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Card 3: Capital Depletion -->
-                <div id="card3" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-slate-900">Kapitalverzehr</h3>
-                        <span class="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-semibold rounded-full">
+                <!-- Card 3: Capital Depletion (Compact) -->
+                <div id="card3" class="strategy-card strategy-card-compact bg-white rounded-lg shadow-sm border border-slate-200 p-4 cursor-pointer hover:border-rose-300 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-rose-500 mr-2"></div>
+                            <h3 class="text-base font-semibold text-slate-900">Kapitalverzehr</h3>
+                        </div>
+                        <span class="px-2 py-0.5 bg-rose-50 text-rose-600 text-xs font-medium rounded">
                             Dynamisch
                         </span>
                     </div>
 
-                    <p class="text-sm text-slate-600 mb-6">
-                        Maximales Einkommen durch gezielten Kapitalabbau bis zum gewünschten Erbe.
-                    </p>
-
-                    <div class="bg-slate-50 rounded-lg p-4 mb-4">
-                        <div class="text-sm text-slate-600 mb-1">Monatliche Entnahme (Ø)</div>
-                        <div id="card3Amount" class="text-3xl font-bold text-rose-600">-</div>
-                        <div id="card3Range" class="text-xs text-slate-500 mt-1">-</div>
-                    </div>
-
-                    <div class="flex items-center text-sm text-slate-600">
-                        <svg class="w-5 h-5 mr-2 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M12 9a1 1 0 01-1 1H9v2a1 1 0 11-2 0v-2H5a1 1 0 110-2h2V6a1 1 0 112 0v2h2a1 1 0 011 1z" clip-rule="evenodd"/>
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-                        </svg>
-                        <span id="card3Success">Min. Entnahme (5. Perz.): -</span>
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <div class="text-xs text-slate-500">Monatlich (Ø)</div>
+                            <div id="card3Amount" class="text-2xl font-bold text-rose-600">-</div>
+                            <div id="card3Range" class="text-xs text-slate-400">-</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">Min. (5. Perz.)</div>
+                            <div id="card3Success" class="text-sm font-medium text-rose-600">-</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Withdrawal Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
-                <h3 class="text-lg font-bold text-slate-900 mb-4">Vermögensverlauf in der Entnahmephase</h3>
-
-                <!-- Percentile Band Controls -->
-                <div class="bg-slate-50 rounded-lg p-4 mb-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="text-sm font-semibold text-slate-900 mb-1">Unsicherheitsbänder (Perzentile)</h4>
-                            <p class="text-xs text-slate-500">
-                                Zeigt die Bandbreite möglicher Vermögensentwicklungen (5., 25., 50., 75., 95. Perzentil)
-                            </p>
-                        </div>
-                        <label class="flex items-center cursor-pointer ml-4">
-                            <input type="checkbox" id="showWealthPercentiles" class="mr-2" checked>
-                            <span class="text-sm text-slate-700 whitespace-nowrap">Bänder anzeigen</span>
+            <!-- Detail Charts (shown when strategy is selected) -->
+            <div id="detailChartsSection" class="mt-6 space-y-6" style="display: none;">
+                <!-- Wealth Timeline Chart -->
+                <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-semibold text-slate-900">Vermögensverlauf</h3>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="showWealthPercentiles" class="mr-2 rounded border-slate-300" checked>
+                            <span class="text-xs text-slate-600">Perzentil-Bänder</span>
                         </label>
                     </div>
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-100" style="height: 300px;">
+                        <canvas id="withdrawalChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <canvas id="withdrawalChart"></canvas>
+                <!-- Income Distribution Chart (shown for Kapitalverzehr) -->
+                <div id="incomeChartSection" class="bg-white rounded-lg shadow-sm border border-slate-200 p-5" style="display: none;">
+                    <h3 class="text-base font-semibold text-slate-900 mb-2">Entnahme-Verteilung über Zeit</h3>
+                    <p class="text-xs text-slate-500 mb-4">
+                        Zeigt die erwartete monatliche Entnahme und deren Schwankungsbreite basierend auf Monte-Carlo-Simulationen.
+                    </p>
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-100" style="height: 280px;">
+                        <canvas id="incomeChart"></canvas>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Income Distribution Chart (shown for Kapitalverzehr) -->
-            <div id="incomeChartSection" class="bg-white rounded-xl shadow-lg p-6 mt-8" style="display: none;">
-                <h3 class="text-lg font-bold text-slate-900 mb-4">Entnahme-Verteilung über Zeit</h3>
-                <p class="text-sm text-slate-600 mb-4">
-                    Zeigt die erwartete monatliche Entnahme und deren Schwankungsbreite basierend auf Monte-Carlo-Simulationen.
-                    <strong>Beispiel:</strong> "Ihr erwarteter Betrag ist €2.500/Monat (Median), aber in einem schlechten Marktszenario (5. Perzentil) könnte er auf €1.200/Monat sinken."
-                </p>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <canvas id="incomeChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Success Rate Chart (shown for Ewige Rente and 4% Rule) -->
-            <div id="successRateChartSection" class="bg-white rounded-xl shadow-lg p-6 mt-8">
-                <h3 class="text-lg font-bold text-slate-900 mb-4">Erfolgswahrscheinlichkeit über Zeit</h3>
-                <p class="text-sm text-slate-600 mb-4">Zeigt den Prozentsatz der Monte-Carlo-Simulationen, die das Vererbungsziel erreichen.</p>
-                <div class="bg-slate-50 rounded-lg p-4">
-                    <canvas id="successRateChart"></canvas>
+                <!-- Success Rate Chart (shown for Ewige Rente and 4% Rule) -->
+                <div id="successRateChartSection" class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                    <h3 class="text-base font-semibold text-slate-900 mb-2">Erfolgswahrscheinlichkeit über Zeit</h3>
+                    <p class="text-xs text-slate-500 mb-4">Zeigt den Prozentsatz der Monte-Carlo-Simulationen, die das Vererbungsziel erreichen.</p>
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-100" style="height: 250px;">
+                        <canvas id="successRateChart"></canvas>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Section C: Detail Settings -->
-        <section id="sectionC" class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <section id="sectionC" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 fade-in">
             <button id="cockpitToggle" class="w-full flex items-center justify-between text-left">
-                <h2 class="text-2xl font-bold text-slate-900">Weitere Details: Steuern, Erbe & Sozialabgaben</h2>
-                <svg id="cockpitIcon" class="w-6 h-6 text-slate-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Experten-Einstellungen</h2>
+                    <p class="text-sm text-slate-500 mt-1">Steuern, Erbe & Sozialabgaben</p>
+                </div>
+                <svg id="cockpitIcon" class="w-5 h-5 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
 
-            <div id="cockpitContent" class="mt-6 space-y-8 hidden">
+            <div id="cockpitContent" class="mt-6 space-y-6 hidden">
 
                 <!-- Legacy & Security -->
-                <div>
-                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Nachlass & Sicherheit</h3>
+                <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                    <h3 class="text-base font-semibold text-slate-900 mb-4">Nachlass & Sicherheit</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                         <!-- Desired Inheritance -->
@@ -550,6 +739,14 @@
         let withdrawalChart = null;
         let successRateChart = null;
         let incomeChart = null;
+        let comparisonIncomeChart = null;
+
+        // Store results for all strategies for comparison
+        let strategyResults = {
+            strategy1: null,
+            strategy2: null,
+            strategy3: null
+        };
 
         // ============================================
         // INITIALIZATION
@@ -781,6 +978,11 @@
         function updateFixedWithdrawalRateLabel() {
             document.getElementById('fixedWithdrawalRateLabel').textContent =
                 `${state.fixedWithdrawalRate.toFixed(1)}%`;
+            // Also update the card badge
+            const fixedRateDisplay = document.getElementById('fixedRateDisplay');
+            if (fixedRateDisplay) {
+                fixedRateDisplay.textContent = state.fixedWithdrawalRate.toFixed(1) + '%';
+            }
         }
 
         function updateHealthInsuranceInfo() {
@@ -799,13 +1001,19 @@
         function selectStrategy(strategyNumber) {
             state.selectedStrategy = strategyNumber;
 
+            // Show detail charts section
+            document.getElementById('detailChartsSection').style.display = 'block';
+
             // Update card styling
             const cards = document.querySelectorAll('.strategy-card');
+            const borderColors = ['border-emerald-400', 'border-amber-400', 'border-rose-400'];
             cards.forEach((card, index) => {
+                // Remove all border colors first
+                borderColors.forEach(bc => card.classList.remove(bc));
+                card.classList.remove('card-selected');
+
                 if (index + 1 === strategyNumber) {
-                    card.classList.add('card-selected', 'border-blue-600');
-                } else {
-                    card.classList.remove('card-selected', 'border-blue-600');
+                    card.classList.add('card-selected', borderColors[index]);
                 }
             });
 
@@ -1014,11 +1222,79 @@
                 }
             });
 
-            // Set canvas height
+            // Comparison Income Chart (shows all 3 strategies)
+            const compCtx = document.getElementById('comparisonIncomeChart').getContext('2d');
+            comparisonIncomeChart = new Chart(compCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const monthly = context.parsed.y;
+                                    return context.dataset.label + ': ' + formatCurrency(monthly) + '/Monat';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Alter (Jahre)',
+                                font: { size: 11 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Monatliche Entnahme (€)',
+                                font: { size: 11 }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Set canvas height (heights are now set via CSS style attribute in HTML)
             document.getElementById('accumulationChart').parentElement.style.height = '300px';
-            document.getElementById('withdrawalChart').parentElement.style.height = '400px';
-            document.getElementById('successRateChart').parentElement.style.height = '300px';
-            document.getElementById('incomeChart').parentElement.style.height = '300px';
         }
 
         // ============================================
@@ -1171,15 +1447,22 @@
 
             // Strategy 1: Eternal Annuity (Capital Preservation)
             const strategy1 = calculateEternalAnnuity(startingWealth, costBasis);
+            strategyResults.strategy1 = strategy1;
             updateCard1(strategy1);
 
             // Strategy 2: 4% Rule
             const strategy2 = calculateFixedRate(startingWealth, costBasis);
+            strategyResults.strategy2 = strategy2;
             updateCard2(strategy2);
 
             // Strategy 3: Capital Depletion
             const strategy3 = calculateCapitalDepletion(startingWealth, costBasis);
+            strategyResults.strategy3 = strategy3;
             updateCard3(strategy3);
+
+            // Update comparison table and chart
+            updateComparisonTable(strategy1, strategy2, strategy3, startingWealth);
+            updateComparisonIncomeChart(strategy1, strategy2, strategy3);
 
             // Update withdrawal chart and success rate chart if a strategy is selected
             if (state.selectedStrategy) {
@@ -1257,8 +1540,10 @@
             };
 
             return {
+                annualWithdrawal: Math.max(0, monthlyWithdrawal * 12),
                 monthlyWithdrawal: Math.max(0, monthlyWithdrawal),
                 successRate: 100, // Always succeeds as capital is preserved
+                avgFinalWealth: startingWealth, // Capital preserved
                 timeline: timeline,
                 successRateByYear: successRateByYear,
                 wealthPercentiles: wealthPercentiles,
@@ -1470,16 +1755,26 @@
             const successRateByYear = successByYear.map(count => (count / runs) * 100);
 
             return {
+                annualWithdrawal: avgMonthlyWithdrawal * 12,
                 monthlyWithdrawal: avgMonthlyWithdrawal,
                 minMonthly: minMonthlyWithdrawal,
                 maxMonthly: maxMonthlyWithdrawal,
                 successRate: successRate,
                 avgFinalWealth: avgFinalWealth,
+                medianFinalWealth: calculateMedianFinalWealth(outcomes),
                 timeline: medianTimeline,
                 successRateByYear: successRateByYear,
                 wealthPercentiles: wealthPercentiles,
                 incomePercentiles: incomePercentiles
             };
+        }
+
+        function calculateMedianFinalWealth(outcomes) {
+            const finalWealths = outcomes.map(o => o.finalWealth).sort((a, b) => a - b);
+            const mid = Math.floor(finalWealths.length / 2);
+            return finalWealths.length % 2 === 0
+                ? (finalWealths[mid - 1] + finalWealths[mid]) / 2
+                : finalWealths[mid];
         }
 
         function calculateNetWithdrawal(desiredWithdrawal, currentWealth, costBasis) {
@@ -1651,20 +1946,21 @@
         // ============================================
 
         function updateCard1(result) {
-            document.getElementById('card1Amount').textContent =
-                formatCurrency(result.monthlyWithdrawal);
-            document.getElementById('card1Success').textContent =
-                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+            // Display monthly withdrawal (annualWithdrawal / 12)
+            const monthly = result.annualWithdrawal / 12;
+            document.getElementById('card1Amount').textContent = formatCurrency(monthly);
+            document.getElementById('card1Success').textContent = `${result.successRate.toFixed(0)}%`;
         }
 
         function updateCard2(result) {
-            document.getElementById('card2Amount').textContent =
-                formatCurrency(result.monthlyWithdrawal);
+            // Display monthly withdrawal (annualWithdrawal / 12)
+            const monthly = result.annualWithdrawal / 12;
+            document.getElementById('card2Amount').textContent = formatCurrency(monthly);
 
-            // Calculate and display failure rate instead of success rate
+            // Calculate and display failure rate
             const failureRate = 100 - result.successRate;
             const card2SuccessElement = document.getElementById('card2Success');
-            card2SuccessElement.textContent = `Pleitewahrscheinlichkeit: ${failureRate.toFixed(0)}%`;
+            card2SuccessElement.textContent = `${failureRate.toFixed(1)}%`;
 
             // Color coding: Green <5%, Yellow <15%, Red >=15%
             if (failureRate < 5) {
@@ -1677,22 +1973,18 @@
         }
 
         function updateCard3(result) {
-            document.getElementById('card3Amount').textContent =
-                formatCurrency(result.monthlyWithdrawal);
+            // Display monthly withdrawal (annualWithdrawal / 12)
+            const monthly = result.annualWithdrawal / 12;
+            document.getElementById('card3Amount').textContent = formatCurrency(monthly);
             document.getElementById('card3Range').textContent =
-                `Schwankung: ${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
+                `${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
 
-            // Show minimum withdrawal (5th percentile) instead of success rate
-            // This is more meaningful for dynamic withdrawal strategy
+            // Show minimum withdrawal (5th percentile)
             if (result.incomePercentiles && result.incomePercentiles.p5 && result.incomePercentiles.p5.length > 0) {
-                // Find the minimum value across all years in the 5th percentile
                 const minWithdrawal5thPercentile = Math.min(...result.incomePercentiles.p5.map(p => p.monthlyWithdrawal));
-                document.getElementById('card3Success').textContent =
-                    `Min. Entnahme (5. Perz.): ${formatCurrency(minWithdrawal5thPercentile)}`;
+                document.getElementById('card3Success').textContent = formatCurrency(minWithdrawal5thPercentile);
             } else {
-                // Fallback to old behavior if percentiles not available
-                document.getElementById('card3Success').textContent =
-                    `Min. Entnahme: ${formatCurrency(result.minMonthly)}`;
+                document.getElementById('card3Success').textContent = formatCurrency(result.minMonthly);
             }
         }
 
@@ -1986,6 +2278,120 @@
             incomeChart.data.labels = labels;
             incomeChart.data.datasets = datasets;
             incomeChart.update();
+        }
+
+        // ============================================
+        // COMPARISON TABLE AND CHART
+        // ============================================
+
+        function updateComparisonTable(strategy1, strategy2, strategy3, startingWealth) {
+            // Start-Einkommen (monthly) - annualWithdrawal / 12
+            const income1 = strategy1.annualWithdrawal / 12;
+            const income2 = strategy2.annualWithdrawal / 12;
+            const income3 = strategy3.annualWithdrawal / 12;
+
+            document.getElementById('compare1Income').textContent = formatCurrency(income1);
+            document.getElementById('compare2Income').textContent = formatCurrency(income2);
+            document.getElementById('compare3Income').textContent = formatCurrency(income3);
+
+            // Apply negative value styling if needed
+            applyNegativeStyle('compare1Income', income1);
+            applyNegativeStyle('compare2Income', income2);
+            applyNegativeStyle('compare3Income', income3);
+
+            // Pleitewahrscheinlichkeit
+            const failure2 = 100 - strategy2.successRate;
+            const failure2El = document.getElementById('compare2Failure');
+            failure2El.textContent = failure2.toFixed(1) + '%';
+
+            // Color coding for failure rate
+            if (failure2 < 5) {
+                failure2El.className = 'text-lg font-semibold text-emerald-600';
+            } else if (failure2 < 15) {
+                failure2El.className = 'text-lg font-semibold text-amber-600';
+            } else {
+                failure2El.className = 'text-lg font-semibold text-red-600';
+            }
+
+            // Erbe-Potenzial (Median final wealth)
+            const inheritance1 = startingWealth; // Capital preserved
+            const inheritance2 = strategy2.medianFinalWealth || strategy2.avgFinalWealth;
+            const inheritance3 = strategy3.medianFinalWealth || state.desiredInheritance;
+
+            document.getElementById('compare1Inheritance').textContent = formatCurrency(inheritance1);
+            document.getElementById('compare2Inheritance').textContent = formatCurrency(inheritance2);
+            document.getElementById('compare3Inheritance').textContent = formatCurrency(inheritance3);
+
+            // Update fixedRateDisplay badge
+            const fixedRateDisplay = document.getElementById('fixedRateDisplay');
+            if (fixedRateDisplay) {
+                fixedRateDisplay.textContent = state.fixedWithdrawalRate.toFixed(1) + '%';
+            }
+        }
+
+        function applyNegativeStyle(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (value < 0) {
+                el.classList.add('negative-value');
+            } else {
+                el.classList.remove('negative-value');
+            }
+        }
+
+        function updateComparisonIncomeChart(strategy1, strategy2, strategy3) {
+            if (!comparisonIncomeChart) return;
+
+            // Get income percentiles for all three strategies
+            const years = state.lifeExpectancy - state.retirementAge;
+            const labels = Array.from({ length: years + 1 }, (_, i) => state.retirementAge + i);
+
+            const datasets = [];
+
+            // Strategy 1: Ewige Rente (constant income - green)
+            if (strategy1.incomePercentiles && strategy1.incomePercentiles.p50) {
+                datasets.push({
+                    label: 'Ewige Rente',
+                    data: strategy1.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    borderWidth: 2.5,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.3
+                });
+            }
+
+            // Strategy 2: Fixe Rate (constant in real terms - amber)
+            if (strategy2.incomePercentiles && strategy2.incomePercentiles.p50) {
+                datasets.push({
+                    label: 'Fixe Rate (' + state.fixedWithdrawalRate.toFixed(1) + '%)',
+                    data: strategy2.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    borderColor: '#d97706',
+                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                    borderWidth: 2.5,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.3
+                });
+            }
+
+            // Strategy 3: Kapitalverzehr (dynamic - rose)
+            if (strategy3.incomePercentiles && strategy3.incomePercentiles.p50) {
+                datasets.push({
+                    label: 'Kapitalverzehr',
+                    data: strategy3.incomePercentiles.p50.map(d => d.monthlyWithdrawal),
+                    borderColor: '#e11d48',
+                    backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                    borderWidth: 2.5,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.3
+                });
+            }
+
+            comparisonIncomeChart.data.labels = labels;
+            comparisonIncomeChart.data.datasets = datasets;
+            comparisonIncomeChart.update();
         }
 
         // ============================================
