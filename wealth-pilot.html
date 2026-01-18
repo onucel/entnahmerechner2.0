@@ -208,6 +208,24 @@
             </div>
         </section>
 
+        <!-- Fixed Withdrawal Rate Setting (for Strategy 2) -->
+        <section class="mb-6">
+            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2">
+                    Fixe Entnahmerate (für Strategie 2): <span id="fixedWithdrawalRateLabel" class="text-amber-600 font-bold">4.0%</span>
+                </label>
+                <input type="range" id="fixedWithdrawalRate" value="4.0" min="2.0" max="10.0" step="0.1"
+                       class="w-full mt-2">
+                <div class="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>Konservativ (2%)</span>
+                    <span>Aggressiv (10%)</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-2">
+                    Bestimmt den Prozentsatz Ihres Startvermögens, den Sie jährlich entnehmen (z.B. 4% = klassische Trinity-Studie).
+                </p>
+            </div>
+        </section>
+
         <!-- Section B: Strategy Deck - Entnahmephase -->
         <section id="sectionB" class="mb-8">
             <h2 class="text-2xl font-bold text-slate-900 mb-6">Entnahmestrategie: Wählen Sie Ihren Weg</h2>
@@ -240,17 +258,17 @@
                     </div>
                 </div>
 
-                <!-- Card 2: 4% Rule -->
+                <!-- Card 2: Fixed Withdrawal Rate -->
                 <div id="card2" class="strategy-card bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow border-2 border-transparent">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-slate-900">Die 4%-Regel</h3>
+                        <h3 class="text-xl font-bold text-slate-900">Fixe Entnahmerate</h3>
                         <span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
                             Standard
                         </span>
                     </div>
 
                     <p class="text-sm text-slate-600 mb-6">
-                        Feste 4% Entnahme vom Startwert, inflationsangepasst. Wissenschaftlich erprobt.
+                        Feste prozentuale Entnahme vom Startvermögen (einstellbar). Wissenschaftlich erprobt (Trinity-Studie).
                     </p>
 
                     <div class="bg-slate-50 rounded-lg p-4 mb-4">
@@ -262,7 +280,7 @@
                         <svg class="w-5 h-5 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
-                        <span id="card2Success">Sicherheit: -</span>
+                        <span id="card2Success">Pleitewahrscheinlichkeit: -</span>
                     </div>
                 </div>
 
@@ -287,9 +305,10 @@
 
                     <div class="flex items-center text-sm text-slate-600">
                         <svg class="w-5 h-5 mr-2 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M12 9a1 1 0 01-1 1H9v2a1 1 0 11-2 0v-2H5a1 1 0 110-2h2V6a1 1 0 112 0v2h2a1 1 0 011 1z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
                         </svg>
-                        <span id="card3Success">Sicherheit: -</span>
+                        <span id="card3Success">Min. Entnahme (5. Perz.): -</span>
                     </div>
                 </div>
             </div>
@@ -297,15 +316,44 @@
             <!-- Withdrawal Chart -->
             <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Vermögensverlauf in der Entnahmephase</h3>
+
+                <!-- Percentile Band Controls -->
+                <div class="bg-slate-50 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-900 mb-1">Unsicherheitsbänder (Perzentile)</h4>
+                            <p class="text-xs text-slate-500">
+                                Zeigt die Bandbreite möglicher Vermögensentwicklungen (5., 25., 50., 75., 95. Perzentil)
+                            </p>
+                        </div>
+                        <label class="flex items-center cursor-pointer ml-4">
+                            <input type="checkbox" id="showWealthPercentiles" class="mr-2" checked>
+                            <span class="text-sm text-slate-700 whitespace-nowrap">Bänder anzeigen</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="bg-slate-50 rounded-lg p-4">
                     <canvas id="withdrawalChart"></canvas>
                 </div>
             </div>
 
-            <!-- Portfolio Success Rate Chart -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
-                <h3 class="text-lg font-bold text-slate-900 mb-4">Portfolio Überlebenswahrscheinlichkeit über Zeit</h3>
-                <p class="text-sm text-slate-600 mb-4">Zeigt den Prozentsatz der Monte-Carlo-Simulationen, die in jedem Jahr noch erfolgreich sind</p>
+            <!-- Income Distribution Chart (shown for Kapitalverzehr) -->
+            <div id="incomeChartSection" class="bg-white rounded-xl shadow-lg p-6 mt-8" style="display: none;">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Entnahme-Verteilung über Zeit</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    Zeigt die erwartete monatliche Entnahme und deren Schwankungsbreite basierend auf Monte-Carlo-Simulationen.
+                    <strong>Beispiel:</strong> "Ihr erwarteter Betrag ist €2.500/Monat (Median), aber in einem schlechten Marktszenario (5. Perzentil) könnte er auf €1.200/Monat sinken."
+                </p>
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <canvas id="incomeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Success Rate Chart (shown for Ewige Rente and 4% Rule) -->
+            <div id="successRateChartSection" class="bg-white rounded-xl shadow-lg p-6 mt-8">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Erfolgswahrscheinlichkeit über Zeit</h3>
+                <p class="text-sm text-slate-600 mb-4">Zeigt den Prozentsatz der Monte-Carlo-Simulationen, die das Vererbungsziel erreichen.</p>
                 <div class="bg-slate-50 rounded-lg p-4">
                     <canvas id="successRateChart"></canvas>
                 </div>
@@ -334,6 +382,14 @@
                             <input type="number" id="desiredInheritance" value="0" min="0" step="10000"
                                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <p class="text-xs text-slate-500 mt-1">Betrag, der am Lebensende (95 Jahre) mindestens übrig bleiben soll</p>
+                        </div>
+
+                        <!-- Withdrawal Cap (for Strategy 3 only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Monatliche Entnahme-Obergrenze (Cap)</label>
+                            <input type="number" id="withdrawalCap" value="0" min="0" step="100"
+                                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <p class="text-xs text-slate-500 mt-1">Maximaler monatlicher Entnahmebetrag (0 = unbegrenzt). Überschüsse bleiben im Depot als Puffer.</p>
                         </div>
 
                         <!-- Life Expectancy -->
@@ -468,7 +524,9 @@
             // Section C: Expert Settings
             inflationRate: 2.0,
             assetAllocation: 70, // % stocks
+            fixedWithdrawalRate: 4.0, // % for Strategy 2 (Fixed Withdrawal)
             desiredInheritance: 0,
+            withdrawalCap: 0, // Maximum monthly withdrawal (0 = unlimited)
             lifeExpectancy: 95,
             capitalGainsTax: 26.375,
             healthInsurance: 'kvdr',
@@ -491,6 +549,7 @@
         let accumulationChart = null;
         let withdrawalChart = null;
         let successRateChart = null;
+        let incomeChart = null;
 
         // ============================================
         // INITIALIZATION
@@ -503,6 +562,7 @@
             updateInflationToggleUI();
             updateHealthInsuranceInfo();
             updateAssetAllocationLabel(); // Initialize asset allocation display
+            updateFixedWithdrawalRateLabel(); // Initialize fixed withdrawal rate display
             calculate();
         });
 
@@ -526,7 +586,9 @@
 
                     document.getElementById('inflationRate').value = state.inflationRate;
                     document.getElementById('assetAllocation').value = state.assetAllocation;
+                    document.getElementById('fixedWithdrawalRate').value = state.fixedWithdrawalRate;
                     document.getElementById('desiredInheritance').value = state.desiredInheritance;
+                    document.getElementById('withdrawalCap').value = state.withdrawalCap;
                     document.getElementById('lifeExpectancy').value = state.lifeExpectancy;
                     document.getElementById('capitalGainsTax').value = state.capitalGainsTax;
                     document.getElementById('healthInsurance').value = state.healthInsurance;
@@ -595,8 +657,19 @@
                 calculate();
             });
 
+            document.getElementById('fixedWithdrawalRate').addEventListener('input', (e) => {
+                state.fixedWithdrawalRate = parseFloat(e.target.value);
+                updateFixedWithdrawalRateLabel();
+                calculate();
+            });
+
             document.getElementById('desiredInheritance').addEventListener('input', (e) => {
                 state.desiredInheritance = parseFloat(e.target.value);
+                calculate();
+            });
+
+            document.getElementById('withdrawalCap').addEventListener('input', (e) => {
+                state.withdrawalCap = parseFloat(e.target.value);
                 calculate();
             });
 
@@ -662,6 +735,9 @@
             document.getElementById('card2').addEventListener('click', () => selectStrategy(2));
             document.getElementById('card3').addEventListener('click', () => selectStrategy(3));
 
+            // Wealth percentile toggle listener
+            document.getElementById('showWealthPercentiles').addEventListener('change', updateWithdrawalChart);
+
             // PDF Export
             document.getElementById('exportPDF').addEventListener('click', exportToPDF);
         }
@@ -702,6 +778,11 @@
                 `${(volatility * 100).toFixed(1)}%`;
         }
 
+        function updateFixedWithdrawalRateLabel() {
+            document.getElementById('fixedWithdrawalRateLabel').textContent =
+                `${state.fixedWithdrawalRate.toFixed(1)}%`;
+        }
+
         function updateHealthInsuranceInfo() {
             const info = document.getElementById('healthInsuranceInfo');
             const status = state.healthInsurance;
@@ -728,9 +809,21 @@
                 }
             });
 
-            // Update withdrawal chart and success rate chart
+            // Toggle chart visibility based on strategy
+            if (strategyNumber === 3) {
+                // Kapitalverzehr: Show income chart, hide success rate chart
+                document.getElementById('incomeChartSection').style.display = 'block';
+                document.getElementById('successRateChartSection').style.display = 'none';
+                updateIncomeChart();
+            } else {
+                // Ewige Rente or 4% Rule: Show success rate chart, hide income chart
+                document.getElementById('incomeChartSection').style.display = 'none';
+                document.getElementById('successRateChartSection').style.display = 'block';
+                updateSuccessRateChart();
+            }
+
+            // Update withdrawal chart
             updateWithdrawalChart();
-            updateSuccessRateChart();
         }
 
         // ============================================
@@ -870,10 +963,62 @@
                 }
             });
 
+            // Income Distribution Chart
+            const incomeCtx = document.getElementById('incomeChart').getContext('2d');
+            incomeChart = new Chart(incomeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const monthly = context.parsed.y;
+                                    const annual = monthly * 12;
+                                    return context.dataset.label + ': ' + formatCurrency(annual) + '/Jahr (' + formatCurrency(monthly) + '/Monat)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Alter (Jahre)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Monatliche Entnahme (€)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
             // Set canvas height
             document.getElementById('accumulationChart').parentElement.style.height = '300px';
             document.getElementById('withdrawalChart').parentElement.style.height = '400px';
             document.getElementById('successRateChart').parentElement.style.height = '300px';
+            document.getElementById('incomeChart').parentElement.style.height = '300px';
         }
 
         // ============================================
@@ -1029,7 +1174,7 @@
             updateCard1(strategy1);
 
             // Strategy 2: 4% Rule
-            const strategy2 = calculate4PercentRule(startingWealth, costBasis);
+            const strategy2 = calculateFixedRate(startingWealth, costBasis);
             updateCard2(strategy2);
 
             // Strategy 3: Capital Depletion
@@ -1078,17 +1223,53 @@
             // Generate success rate by year (always 100% since capital is preserved)
             const successRateByYear = Array(years + 1).fill(100);
 
+            // Generate wealth percentiles (all same since deterministic)
+            const wealthPercentiles = {
+                p5: timeline.map(t => ({ age: state.retirementAge + t.year, wealth: t.wealth })),
+                p25: timeline.map(t => ({ age: state.retirementAge + t.year, wealth: t.wealth })),
+                p50: timeline.map(t => ({ age: state.retirementAge + t.year, wealth: t.wealth })),
+                p75: timeline.map(t => ({ age: state.retirementAge + t.year, wealth: t.wealth })),
+                p95: timeline.map(t => ({ age: state.retirementAge + t.year, wealth: t.wealth }))
+            };
+
+            // Generate income percentiles (all same since constant withdrawals)
+            const incomePercentiles = {
+                p5: Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    monthlyWithdrawal: Math.max(0, monthlyWithdrawal)
+                })),
+                p25: Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    monthlyWithdrawal: Math.max(0, monthlyWithdrawal)
+                })),
+                p50: Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    monthlyWithdrawal: Math.max(0, monthlyWithdrawal)
+                })),
+                p75: Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    monthlyWithdrawal: Math.max(0, monthlyWithdrawal)
+                })),
+                p95: Array.from({ length: years + 1 }, (_, i) => ({
+                    age: state.retirementAge + i,
+                    monthlyWithdrawal: Math.max(0, monthlyWithdrawal)
+                }))
+            };
+
             return {
                 monthlyWithdrawal: Math.max(0, monthlyWithdrawal),
                 successRate: 100, // Always succeeds as capital is preserved
                 timeline: timeline,
-                successRateByYear: successRateByYear
+                successRateByYear: successRateByYear,
+                wealthPercentiles: wealthPercentiles,
+                incomePercentiles: incomePercentiles
             };
         }
 
-        function calculate4PercentRule(startingWealth, costBasis) {
-            // Fixed 4% withdrawal, inflation adjusted
-            const annualWithdrawal = startingWealth * 0.04;
+        function calculateFixedRate(startingWealth, costBasis) {
+            // Fixed percentage withdrawal based on user-selected rate
+            const withdrawalRate = state.fixedWithdrawalRate / 100;
+            const annualWithdrawal = startingWealth * withdrawalRate;
 
             // Run Monte Carlo simulation
             const simulation = runMonteCarloSimulation(
@@ -1103,112 +1284,39 @@
         }
 
         function calculateCapitalDepletion(startingWealth, costBasis) {
-            // Dynamic withdrawal to deplete to inheritance amount
-            // Target: 95% success rate
+            // Dynamic withdrawal strategy - recalculates withdrawal each year based on remaining wealth
+            // No binary search needed - annuity is calculated dynamically in the simulation
             const yearsInRetirement = state.lifeExpectancy - state.retirementAge;
             const targetFinalValue = state.desiredInheritance;
-            const targetSuccessRate = 95; // 95% success rate
 
-            // Use annuity formula as starting point
+            // Calculate initial annual withdrawal using annuity formula (PMT)
+            // This is just the starting point; actual withdrawals will be recalculated each year
             const r = getExpectedReturn() / 100;
             const n = yearsInRetirement;
 
             // Initial PMT calculation with FV target
             let initialWithdrawal;
             if (targetFinalValue === 0) {
-                // Standard annuity
+                // Standard annuity: deplete to zero
                 initialWithdrawal = startingWealth * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
             } else {
-                // Adjusted for inheritance
+                // Adjusted for inheritance target
                 const pvFactor = (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
                 const fvFactor = 1 / Math.pow(1 + r, n);
                 initialWithdrawal = (startingWealth - targetFinalValue * fvFactor) / pvFactor;
             }
 
-            // Use binary search to find withdrawal that achieves ~95% success rate
-            const { optimalWithdrawal, bestSimulation } = findOptimalWithdrawal(
+            // Run Monte Carlo simulation with dynamic mode
+            // The simulation will recalculate withdrawals each year based on remaining wealth
+            const simulation = runMonteCarloSimulation(
                 startingWealth,
                 costBasis,
                 initialWithdrawal,
-                targetFinalValue,
-                targetSuccessRate
+                'dynamic',
+                state.desiredInheritance
             );
 
-            // If we need higher accuracy, run final Monte Carlo simulation with full runs
-            // Otherwise, reuse the cached simulation from the binary search
-            let simulation;
-            if (state.monteCarloRuns > 100) {
-                // Run final simulation with full number of runs for better accuracy
-                simulation = runMonteCarloSimulation(
-                    startingWealth,
-                    costBasis,
-                    optimalWithdrawal,
-                    'dynamic',
-                    state.desiredInheritance
-                );
-            } else {
-                // Reuse cached simulation if user wants fewer runs
-                simulation = bestSimulation;
-            }
-
             return simulation;
-        }
-
-        function findOptimalWithdrawal(startingWealth, costBasis, initialWithdrawal, targetInheritance, targetSuccessRate) {
-            // Binary search to find withdrawal that achieves target success rate
-            let low = initialWithdrawal * 0.5; // Start at 50% of initial
-            let high = initialWithdrawal * 1.2; // Up to 120% of initial
-            let optimalWithdrawal = initialWithdrawal;
-            let bestSimulation = null;
-            const tolerance = 2; // Within 2% of target success rate
-            const maxIterations = 10;
-
-            // Cache simulation results to avoid redundant calculations
-            const simulationCache = new Map();
-
-            for (let i = 0; i < maxIterations; i++) {
-                const testWithdrawal = (low + high) / 2;
-
-                // Round to avoid floating point precision issues in cache
-                const cacheKey = Math.round(testWithdrawal * 100) / 100;
-
-                // Check cache first
-                let quickSimulation = simulationCache.get(cacheKey);
-                if (!quickSimulation) {
-                    // Run quick simulation with fewer runs for speed
-                    quickSimulation = runMonteCarloSimulation(
-                        startingWealth,
-                        costBasis,
-                        testWithdrawal,
-                        'dynamic',
-                        targetInheritance,
-                        Math.min(100, state.monteCarloRuns) // Use max 100 runs for search
-                    );
-                    simulationCache.set(cacheKey, quickSimulation);
-                }
-
-                const successRate = quickSimulation.successRate;
-
-                if (Math.abs(successRate - targetSuccessRate) < tolerance) {
-                    // Close enough - save this as best simulation
-                    optimalWithdrawal = testWithdrawal;
-                    bestSimulation = quickSimulation;
-                    break;
-                }
-
-                if (successRate < targetSuccessRate) {
-                    // Success rate too low, reduce withdrawal
-                    high = testWithdrawal;
-                } else {
-                    // Success rate too high, can increase withdrawal
-                    low = testWithdrawal;
-                }
-
-                optimalWithdrawal = testWithdrawal;
-                bestSimulation = quickSimulation;
-            }
-
-            return { optimalWithdrawal, bestSimulation };
         }
 
         function runMonteCarloSimulation(startingWealth, costBasis, annualWithdrawal, mode, targetInheritance, customRuns = null) {
@@ -1220,6 +1328,7 @@
 
             const outcomes = [];
             const allTimelines = [];
+            const allWithdrawals = []; // Track withdrawal amounts for each simulation run
             const successByYear = Array(years + 1).fill(0).map(() => 0); // Track successes at each year
             successByYear[0] = runs; // Everyone starts with wealth
 
@@ -1227,6 +1336,7 @@
                 let wealth = startingWealth;
                 let remainingCostBasis = costBasis;
                 const timeline = [{ year: 0, wealth: wealth }];
+                const withdrawalTimeline = []; // Track withdrawals for this run
 
                 let currentAnnualWithdrawal = annualWithdrawal;
                 let failed = false;
@@ -1238,9 +1348,11 @@
                     // Calculate gains for the year
                     const wealthBeforeWithdrawal = wealth * (1 + annualReturn);
 
-                    // Adjust withdrawal for inflation
+                    // Adjust withdrawal based on mode
                     if (mode === 'fixed') {
-                        currentAnnualWithdrawal = annualWithdrawal * Math.pow(1 + inflationRate, year);
+                        // In a real-return simulation, the purchasing power withdrawal stays constant
+                        // No inflation adjustment needed - we're already working with real returns
+                        currentAnnualWithdrawal = annualWithdrawal;
                     } else if (mode === 'dynamic') {
                         // Recalculate based on remaining wealth and years
                         const remainingYears = years - year + 1;
@@ -1250,6 +1362,7 @@
                             currentAnnualWithdrawal = Math.max(0, wealthBeforeWithdrawal - targetInheritance);
                         } else {
                             // Use wealth after return for more accurate calculation
+                            // Use expected return (not the random return) for stable planning
                             const r = expectedReturn;
                             if (targetInheritance === 0) {
                                 currentAnnualWithdrawal = wealthBeforeWithdrawal * (r * Math.pow(1 + r, remainingYears)) / (Math.pow(1 + r, remainingYears) - 1);
@@ -1257,6 +1370,14 @@
                                 const pvFactor = (Math.pow(1 + r, remainingYears) - 1) / (r * Math.pow(1 + r, remainingYears));
                                 const fvFactor = 1 / Math.pow(1 + r, remainingYears);
                                 currentAnnualWithdrawal = Math.max(0, (wealthBeforeWithdrawal - targetInheritance * fvFactor) / pvFactor);
+                            }
+
+                            // Apply withdrawal cap if set (in real terms - purchasing power)
+                            if (state.withdrawalCap > 0) {
+                                // Cap is in today's purchasing power, wealth is also in real terms
+                                // No inflation adjustment needed in real-return simulation
+                                const annualCap = state.withdrawalCap * 12;
+                                currentAnnualWithdrawal = Math.min(currentAnnualWithdrawal, annualCap);
                             }
 
                             // Safety check: never withdraw more than available minus target inheritance
@@ -1278,6 +1399,12 @@
                     const withdrawalRatio = netWithdrawal.grossWithdrawal / wealthBeforeWithdrawal;
                     remainingCostBasis = remainingCostBasis * (1 - withdrawalRatio);
 
+                    // Track withdrawal for this year (convert to monthly)
+                    withdrawalTimeline.push({
+                        age: state.retirementAge + year,
+                        monthlyWithdrawal: currentAnnualWithdrawal / 12
+                    });
+
                     // Check if bankrupt
                     if (wealth < 0) {
                         wealth = 0;
@@ -1289,8 +1416,8 @@
 
                     timeline.push({ year: year, wealth: wealth });
 
-                    // Track success at this year (still has wealth > target)
-                    if (wealth >= targetInheritance) {
+                    // Track success at this year (still has wealth >= target, with 1 Euro tolerance)
+                    if (wealth >= targetInheritance - 1) {
                         successByYear[year]++;
                     }
 
@@ -1304,32 +1431,40 @@
                 }
 
                 allTimelines.push(timeline);
+                allWithdrawals.push(withdrawalTimeline);
             }
 
             // Calculate statistics
-            const successCount = outcomes.filter(o => o.success).length;
+            // Use tolerance of 1 Euro to handle floating point rounding errors
+            const successCount = outcomes.filter(o => o.finalWealth >= targetInheritance - 1).length;
             const successRate = (successCount / runs) * 100;
 
             const finalWealths = outcomes.map(o => o.finalWealth);
             const avgFinalWealth = finalWealths.reduce((a, b) => a + b, 0) / finalWealths.length;
 
-            // Calculate withdrawal statistics
-            const monthlyWithdrawals = [];
-            for (let run = 0; run < Math.min(100, runs); run++) {
-                const timeline = allTimelines[run];
-                for (let i = 1; i < timeline.length; i++) {
-                    const yearlyWithdrawal = timeline[i - 1].wealth - timeline[i].wealth +
-                        (timeline[i].wealth * (expectedReturn));
-                    monthlyWithdrawals.push(yearlyWithdrawal / 12);
-                }
+            // Calculate withdrawal statistics directly from tracked withdrawals
+            // Flatten the array of arrays to get all monthly withdrawal data points
+            const allMonthlyDataPoints = [];
+
+            // Collect all data points from all runs (or a sample if too large)
+            const runsToSample = Math.min(100, runs);
+            for (let run = 0; run < runsToSample; run++) {
+                const runWithdrawals = allWithdrawals[run].map(w => w.monthlyWithdrawal);
+                allMonthlyDataPoints.push(...runWithdrawals);
             }
 
-            const avgMonthlyWithdrawal = monthlyWithdrawals.reduce((a, b) => a + b, 0) / monthlyWithdrawals.length;
-            const minMonthlyWithdrawal = Math.min(...monthlyWithdrawals);
-            const maxMonthlyWithdrawal = Math.max(...monthlyWithdrawals);
+            const avgMonthlyWithdrawal = allMonthlyDataPoints.reduce((a, b) => a + b, 0) / allMonthlyDataPoints.length;
+            const minMonthlyWithdrawal = Math.min(...allMonthlyDataPoints);
+            const maxMonthlyWithdrawal = Math.max(...allMonthlyDataPoints);
 
             // Calculate median timeline for display
             const medianTimeline = calculateMedianTimeline(allTimelines);
+
+            // Calculate wealth percentiles for visualization
+            const wealthPercentiles = calculatePercentiles(allTimelines, [5, 25, 50, 75, 95]);
+
+            // Calculate income/withdrawal percentiles
+            const incomePercentiles = calculateIncomePercentiles(allWithdrawals, [5, 25, 50, 75, 95]);
 
             // Convert successByYear to percentages
             const successRateByYear = successByYear.map(count => (count / runs) * 100);
@@ -1341,7 +1476,9 @@
                 successRate: successRate,
                 avgFinalWealth: avgFinalWealth,
                 timeline: medianTimeline,
-                successRateByYear: successRateByYear
+                successRateByYear: successRateByYear,
+                wealthPercentiles: wealthPercentiles,
+                incomePercentiles: incomePercentiles
             };
         }
 
@@ -1433,6 +1570,82 @@
             return medianTimeline;
         }
 
+        function calculatePercentiles(allTimelines, percentiles = [5, 25, 50, 75, 95]) {
+            if (allTimelines.length === 0) return null;
+
+            const maxYears = Math.max(...allTimelines.map(t => t.length));
+            const percentileData = {};
+
+            // Initialize arrays for each percentile
+            percentiles.forEach(p => {
+                percentileData[`p${p}`] = [];
+            });
+
+            // Calculate percentile for each year
+            for (let year = 0; year < maxYears; year++) {
+                // Collect all wealth values at this year, sorted
+                const wealthsAtYear = allTimelines
+                    .filter(t => t.length > year)
+                    .map(t => t[year].wealth)
+                    .sort((a, b) => a - b);
+
+                if (wealthsAtYear.length === 0) continue;
+
+                // Calculate each percentile
+                percentiles.forEach(p => {
+                    const index = Math.max(0, Math.min(
+                        wealthsAtYear.length - 1,
+                        Math.floor((p / 100) * (wealthsAtYear.length - 1))
+                    ));
+
+                    percentileData[`p${p}`].push({
+                        age: state.retirementAge + year,
+                        wealth: wealthsAtYear[index]
+                    });
+                });
+            }
+
+            return percentileData;
+        }
+
+        function calculateIncomePercentiles(allWithdrawals, percentiles = [5, 25, 50, 75, 95]) {
+            if (allWithdrawals.length === 0) return null;
+
+            const maxYears = Math.max(...allWithdrawals.map(w => w.length));
+            const percentileData = {};
+
+            // Initialize arrays for each percentile
+            percentiles.forEach(p => {
+                percentileData[`p${p}`] = [];
+            });
+
+            // Calculate percentile for each year
+            for (let year = 0; year < maxYears; year++) {
+                // Collect all withdrawal values at this year, sorted
+                const withdrawalsAtYear = allWithdrawals
+                    .filter(w => w.length > year)
+                    .map(w => w[year].monthlyWithdrawal)
+                    .sort((a, b) => a - b);
+
+                if (withdrawalsAtYear.length === 0) continue;
+
+                // Calculate each percentile
+                percentiles.forEach(p => {
+                    const index = Math.max(0, Math.min(
+                        withdrawalsAtYear.length - 1,
+                        Math.floor((p / 100) * (withdrawalsAtYear.length - 1))
+                    ));
+
+                    percentileData[`p${p}`].push({
+                        age: state.retirementAge + year,
+                        monthlyWithdrawal: withdrawalsAtYear[index]
+                    });
+                });
+            }
+
+            return percentileData;
+        }
+
         // ============================================
         // CARD UPDATES
         // ============================================
@@ -1447,8 +1660,20 @@
         function updateCard2(result) {
             document.getElementById('card2Amount').textContent =
                 formatCurrency(result.monthlyWithdrawal);
-            document.getElementById('card2Success').textContent =
-                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+
+            // Calculate and display failure rate instead of success rate
+            const failureRate = 100 - result.successRate;
+            const card2SuccessElement = document.getElementById('card2Success');
+            card2SuccessElement.textContent = `Pleitewahrscheinlichkeit: ${failureRate.toFixed(0)}%`;
+
+            // Color coding: Green <5%, Yellow <15%, Red >=15%
+            if (failureRate < 5) {
+                card2SuccessElement.style.color = '#059669'; // Green
+            } else if (failureRate < 15) {
+                card2SuccessElement.style.color = '#D97706'; // Yellow/Amber
+            } else {
+                card2SuccessElement.style.color = '#DC2626'; // Red
+            }
         }
 
         function updateCard3(result) {
@@ -1456,8 +1681,19 @@
                 formatCurrency(result.monthlyWithdrawal);
             document.getElementById('card3Range').textContent =
                 `Schwankung: ${formatCurrency(result.minMonthly)} - ${formatCurrency(result.maxMonthly)}`;
-            document.getElementById('card3Success').textContent =
-                `Sicherheit: ${result.successRate.toFixed(0)}%`;
+
+            // Show minimum withdrawal (5th percentile) instead of success rate
+            // This is more meaningful for dynamic withdrawal strategy
+            if (result.incomePercentiles && result.incomePercentiles.p5 && result.incomePercentiles.p5.length > 0) {
+                // Find the minimum value across all years in the 5th percentile
+                const minWithdrawal5thPercentile = Math.min(...result.incomePercentiles.p5.map(p => p.monthlyWithdrawal));
+                document.getElementById('card3Success').textContent =
+                    `Min. Entnahme (5. Perz.): ${formatCurrency(minWithdrawal5thPercentile)}`;
+            } else {
+                // Fallback to old behavior if percentiles not available
+                document.getElementById('card3Success').textContent =
+                    `Min. Entnahme: ${formatCurrency(result.minMonthly)}`;
+            }
         }
 
         // ============================================
@@ -1471,95 +1707,127 @@
             const startingWealth = accumulationResult.nominalWealth;
             const costBasis = accumulationResult.totalContributions;
 
-            let nominalTimeline = [];
+            let simulationResult = null;
             let label = '';
             let color = '';
 
             if (state.selectedStrategy === 1) {
-                // Eternal Annuity - flat line
-                const years = state.lifeExpectancy - state.retirementAge;
-                nominalTimeline = Array.from({ length: years + 1 }, (_, i) => ({
-                    age: state.retirementAge + i,
-                    wealth: startingWealth
-                }));
-                label = 'Ewige Rente (Kapitalerhalt)';
+                simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
+                label = 'Ewige Rente';
                 color = '#059669';
             } else if (state.selectedStrategy === 2) {
-                const result = calculate4PercentRule(startingWealth, costBasis);
-                nominalTimeline = result.timeline;
-                label = '4%-Regel';
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
+                label = 'Fixe Entnahmerate';
                 color = '#D97706';
             } else if (state.selectedStrategy === 3) {
-                const result = calculateCapitalDepletion(startingWealth, costBasis);
-                nominalTimeline = result.timeline;
+                simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
                 label = 'Kapitalverzehr';
                 color = '#E11D48';
             }
 
-            const labels = nominalTimeline.map(p => p.age.toFixed(0));
+            if (!simulationResult || !simulationResult.wealthPercentiles) return;
 
-            if (state.inflationToggle && nominalTimeline.length > 0) {
-                // Show both nominal and real lines
-                const nominalData = nominalTimeline.map(p => p.wealth);
+            const wealthPercentiles = simulationResult.wealthPercentiles;
+            const showPercentiles = document.getElementById('showWealthPercentiles')?.checked ?? true;
 
-                const realTimeline = nominalTimeline.map(point => {
+            // Helper function to apply inflation adjustment if needed
+            const adjustForInflation = (timeline) => {
+                if (!state.inflationToggle) return timeline.map(p => p.wealth);
+
+                return timeline.map(point => {
                     const yearsFromNow = point.age - state.currentAge;
                     const inflationFactor = Math.pow(1 + state.inflationRate / 100, yearsFromNow);
                     return point.wealth / inflationFactor;
                 });
+            };
 
-                withdrawalChart.data.labels = labels;
-                withdrawalChart.data.datasets = [
-                    {
-                        label: label + ' - Nominal',
-                        data: nominalData,
-                        borderColor: '#94a3b8',
-                        backgroundColor: 'rgba(148, 163, 184, 0.05)',
-                        fill: false,
-                        tension: 0.4,
-                        borderDash: [5, 5]
-                    },
-                    {
-                        label: label + ' - Real (Kaufkraft heute)',
-                        data: realTimeline,
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ];
-            } else {
-                // Show only nominal
-                const nominalData = nominalTimeline.map(p => p.wealth);
+            const labels = wealthPercentiles.p50.map(p => p.age.toFixed(0));
+            const datasets = [];
 
-                withdrawalChart.data.labels = labels;
-                withdrawalChart.data.datasets = [{
-                    label: label + ' - Nominal',
-                    data: nominalData,
-                    borderColor: color,
-                    backgroundColor: color + '20',
-                    fill: true,
+            // Only show percentile bands if checkbox is enabled
+            if (showPercentiles) {
+                // 5th percentile (worst case) - dashed red line
+                datasets.push({
+                    label: '5. Perzentil (Worst Case)',
+                    data: adjustForInflation(wealthPercentiles.p5),
+                    borderColor: 'rgba(239, 68, 68, 0.6)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderDash: [3, 3],
+                    fill: false,
+                    pointRadius: 0,
                     tension: 0.4
-                }];
+                });
+
+                // 25th-75th percentile band (shaded area)
+                datasets.push({
+                    label: '25. Perzentil',
+                    data: adjustForInflation(wealthPercentiles.p25),
+                    borderColor: `${color}60`,
+                    backgroundColor: `${color}20`,
+                    borderWidth: 1,
+                    fill: '+1',  // Fill to next dataset (p75)
+                    pointRadius: 0,
+                    tension: 0.4
+                });
+
+                datasets.push({
+                    label: '75. Perzentil',
+                    data: adjustForInflation(wealthPercentiles.p75),
+                    borderColor: `${color}60`,
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                });
+
+                // 95th percentile (best case) - dashed green line
+                datasets.push({
+                    label: '95. Perzentil (Best Case)',
+                    data: adjustForInflation(wealthPercentiles.p95),
+                    borderColor: 'rgba(34, 197, 94, 0.6)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderDash: [3, 3],
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
+                });
             }
 
-            // Add inheritance line if set
+            // Median (50th percentile) - always shown, emphasized
+            datasets.push({
+                label: `${label} - Median`,
+                data: adjustForInflation(wealthPercentiles.p50),
+                borderColor: color,
+                backgroundColor: `${color}10`,
+                borderWidth: 3,
+                fill: false,
+                pointRadius: 0,
+                tension: 0.4
+            });
+
+            // Add inheritance target line if set
             if (state.desiredInheritance > 0) {
                 const inheritanceLineValue = state.inflationToggle
-                    ? state.desiredInheritance // Show real value when toggle is on
+                    ? state.desiredInheritance / Math.pow(1 + state.inflationRate / 100,
+                        state.lifeExpectancy - state.currentAge)
                     : state.desiredInheritance;
 
-                const inheritanceLine = Array(labels.length).fill(inheritanceLineValue);
-                withdrawalChart.data.datasets.push({
+                datasets.push({
                     label: 'Gewünschtes Erbe',
-                    data: inheritanceLine,
+                    data: Array(labels.length).fill(inheritanceLineValue),
                     borderColor: '#64748b',
                     borderDash: [5, 5],
+                    borderWidth: 2,
                     fill: false,
                     pointRadius: 0
                 });
             }
 
+            withdrawalChart.data.labels = labels;
+            withdrawalChart.data.datasets = datasets;
             withdrawalChart.update();
         }
 
@@ -1581,7 +1849,7 @@
             if (state.selectedStrategy === 1) {
                 simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
             } else if (state.selectedStrategy === 2) {
-                simulationResult = calculate4PercentRule(startingWealth, costBasis);
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
             } else if (state.selectedStrategy === 3) {
                 simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
             }
@@ -1598,6 +1866,126 @@
             successRateChart.data.labels = labels;
             successRateChart.data.datasets[0].data = simulationResult.successRateByYear;
             successRateChart.update();
+        }
+
+        function updateIncomeChart() {
+            if (!state.selectedStrategy) {
+                incomeChart.data.labels = [];
+                incomeChart.data.datasets = [];
+                incomeChart.update();
+                return;
+            }
+
+            const accumulationResult = calculateAccumulation();
+            const startingWealth = accumulationResult.nominalWealth;
+            const costBasis = accumulationResult.totalContributions;
+
+            let simulationResult = null;
+            let strategyColor = '';
+
+            if (state.selectedStrategy === 1) {
+                simulationResult = calculateEternalAnnuity(startingWealth, costBasis);
+                strategyColor = '#059669';
+            } else if (state.selectedStrategy === 2) {
+                simulationResult = calculateFixedRate(startingWealth, costBasis);
+                strategyColor = '#D97706';
+            } else if (state.selectedStrategy === 3) {
+                simulationResult = calculateCapitalDepletion(startingWealth, costBasis);
+                strategyColor = '#E11D48';
+            }
+
+            if (!simulationResult || !simulationResult.incomePercentiles) {
+                return;
+            }
+
+            const incomePercentiles = simulationResult.incomePercentiles;
+            const labels = incomePercentiles.p50.map(d => d.age);
+            const datasets = [];
+
+            // 5th percentile (worst case) - subtle dashed line
+            datasets.push({
+                label: '5. Perzentil (Worst Case)',
+                data: incomePercentiles.p5.map(d => d.monthlyWithdrawal),
+                borderColor: 'rgba(148, 163, 184, 0.4)', // Subtle gray
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                borderDash: [5, 5],
+                fill: false,
+                pointRadius: 0,
+                tension: 0.4
+            });
+
+            // 25th-75th percentile band (light shaded area)
+            datasets.push({
+                label: '25. Perzentil',
+                data: incomePercentiles.p25.map(d => d.monthlyWithdrawal),
+                borderColor: 'rgba(148, 163, 184, 0.3)',
+                backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                borderWidth: 1,
+                fill: '+1',  // Fill to next dataset (p75)
+                pointRadius: 0,
+                tension: 0.4
+            });
+
+            datasets.push({
+                label: '75. Perzentil',
+                data: incomePercentiles.p75.map(d => d.monthlyWithdrawal),
+                borderColor: 'rgba(148, 163, 184, 0.3)',
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                fill: false,
+                pointRadius: 0,
+                tension: 0.4
+            });
+
+            // 95th percentile (best case) - subtle dashed line
+            datasets.push({
+                label: '95. Perzentil (Best Case)',
+                data: incomePercentiles.p95.map(d => d.monthlyWithdrawal),
+                borderColor: 'rgba(148, 163, 184, 0.4)', // Subtle gray
+                backgroundColor: 'transparent',
+                borderWidth: 1,
+                borderDash: [5, 5],
+                fill: false,
+                pointRadius: 0,
+                tension: 0.4
+            });
+
+            // Calculate average of median values for the red horizontal line
+            const medianData = incomePercentiles.p50.map(d => d.monthlyWithdrawal);
+            const averageMedian = medianData.reduce((a, b) => a + b, 0) / medianData.length;
+
+            // Average line (red horizontal line)
+            datasets.push({
+                label: 'Durchschnitt',
+                data: Array(labels.length).fill(averageMedian),
+                borderColor: '#ef4444', // Red
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                tension: 0
+            });
+
+            // Median (50th percentile) - blue line with points (emphasized, on top)
+            datasets.push({
+                label: 'Median-Entnahme',
+                data: medianData,
+                borderColor: '#3b82f6', // Blue
+                backgroundColor: '#ffffff',
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#3b82f6',
+                pointBorderWidth: 2,
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.4
+            });
+
+            incomeChart.data.labels = labels;
+            incomeChart.data.datasets = datasets;
+            incomeChart.update();
         }
 
         // ============================================
@@ -1645,7 +2033,7 @@
             if (state.selectedStrategy === 1) {
                 doc.text('Gewählte Strategie: Ewige Rente (Kapitalerhalt)', 20, 117);
             } else if (state.selectedStrategy === 2) {
-                doc.text('Gewählte Strategie: 4%-Regel', 20, 117);
+                doc.text('Gewählte Strategie: Fixe Entnahmerate', 20, 117);
             } else if (state.selectedStrategy === 3) {
                 doc.text('Gewählte Strategie: Kapitalverzehr', 20, 117);
             } else {
